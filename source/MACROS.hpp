@@ -1,5 +1,5 @@
 /**
-	@file		MACROS.h
+	@file		MACROS.hpp
 	@author		Mirian Cifredo
 	@date		27/02/2022
     @brief		Header file describing macros for C.

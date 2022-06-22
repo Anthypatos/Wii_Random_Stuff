@@ -1,13 +1,13 @@
 #include <iostream>
+#include <stdexcept>
 #include <gccore.h>
 #include <wiiuse/wpad.h>
 #include <fat.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <turbojpeg.h>
-#include "display.hpp"
-#include "MACROS.h"
-#include "PORTS.h"
+#include "DISPLAY.hpp"
+#include "MACROS.hpp"
+#include "PORTS.hpp"
 
 static void *xfb = NULL;
 static GXRModeObj *rmode = NULL;
@@ -25,6 +25,7 @@ int main(int argc, char **argv)
 	initialise_fat();
 
 	ir_t irT;
+	Jpeg imagen("/apps/test/resources/about.jpg");
 
 	while(1) 
 	{
@@ -36,8 +37,10 @@ int main(int argc, char **argv)
 		
 		VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
 		//drawBox(irT.x - 5, irT.y - 5, irT.x + 5, irT.y + 5, COLOR_WHITE);
-		display_jpeg("/apps/test/resources/about.jpg", irT.x, irT.y, xfb, rmode);
-		
+		try { imagen.display(irT.x - (imagen.getWidth() >> 1), irT.y - (imagen.getHeight() >> 1), xfb, 
+				*rmode); }
+		catch (const std::out_of_range& oorException) {}
+
 		// WPAD_ButtonsDown tells us which buttons were pressed in this loop
 		// this is a "one shot" state which will not fire again until the button has been released
 		u32 iPressed = WPAD_ButtonsDown(WPAD_CHAN_0);
@@ -100,7 +103,7 @@ void initialise()
 	// This positions the cursor on row 2, column 0
 	// we can use variables for this with format codes too
 	// e.g. printf ("\x1b[%d;%dH", row, column );
-	printf("\x1b[2;0H");
+	std::cout << "\x1b[2;0H";
 
 	WPAD_SetVRes(WPAD_CHAN_0, rmode->viWidth, rmode->viHeight);
 	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
