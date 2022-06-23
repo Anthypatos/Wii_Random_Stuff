@@ -5,9 +5,10 @@
 #include <fat.h>
 #include <dirent.h>
 #include <unistd.h>
-#include "DISPLAY.hpp"
+#include "JPEG.hpp"
 #include "MACROS.hpp"
 #include "PORTS.hpp"
+#include "../build/coche_jpg.h"
 
 static void *xfb = NULL;
 static GXRModeObj *rmode = NULL;
@@ -18,14 +19,15 @@ void initialise_fat();
 void die(const char* pcMsg);
 
 //---------------------------------------------------------------------------------
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 //---------------------------------------------------------------------------------
 {
 	initialise();
 	initialise_fat();
 
 	ir_t irT;
-	Jpeg imagen("/apps/test/resources/coche.jpg");
+	//JPEG imagen("/apps/test/resources/coche.jpg");
+	JPEG imagen(coche_jpg, coche_jpg_size);
 
 	while(1) 
 	{
