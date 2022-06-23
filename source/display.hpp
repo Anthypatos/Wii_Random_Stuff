@@ -1,5 +1,5 @@
 /**
-	@file		PORTS.hpp
+	@file		DISPLAY.hpp
 	@author		Juan de la Cruz Caravaca Guerrero
 	@date		22/06/2022
     @brief		DISPLAY module
@@ -24,10 +24,10 @@ class Jpeg
 {
 private:
     s32 _iWidth, _iHeight, _iInSubsamp, _iInColorspace;
-    u8* _pImgBuf;
+    u32* _pImgBuf;
 
 public:
-    const u8* getImgBuf() const noexcept;
+    const u32* getImgBuf() const noexcept;
     s32 getWidth() const noexcept;
     s32 getHeight() const noexcept;
     s32 getInSubsamp() const noexcept;
@@ -46,7 +46,7 @@ inline s32 Jpeg::getWidth() const noexcept { return _iWidth; }
 inline s32 Jpeg::getHeight() const noexcept { return _iHeight; }
 inline s32 Jpeg::getInSubsamp() const noexcept { return _iInSubsamp; }
 inline s32 Jpeg::getInColorspace() const noexcept { return _iInColorspace; }
-inline const u8* Jpeg::getImgBuf() const noexcept { return _pImgBuf; }
+inline const u32* Jpeg::getImgBuf() const noexcept { return _pImgBuf; }
 
 
 #endif

@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 	initialise_fat();
 
 	ir_t irT;
-	Jpeg imagen("/apps/test/resources/about.jpg");
+	Jpeg imagen("/apps/test/resources/coche.jpg");
 
 	while(1) 
 	{
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 		//drawBox(irT.x - 5, irT.y - 5, irT.x + 5, irT.y + 5, COLOR_WHITE);
 		try { imagen.display(irT.x - (imagen.getWidth() >> 1), irT.y - (imagen.getHeight() >> 1), xfb, 
 				*rmode); }
-		catch (const std::out_of_range& oorException) {}
+		catch (const std::out_of_range& oorException) { std::cout << "\x1b[2;0H" << oorException.what(); }
 
 		// WPAD_ButtonsDown tells us which buttons were pressed in this loop
 		// this is a "one shot" state which will not fire again until the button has been released
@@ -48,11 +48,7 @@ int main(int argc, char **argv)
 		if (iPressed)
 		{
 			// We return to the launcher application via exit
-			if (iPressed & WPAD_BUTTON_HOME) 
-			{
-				fatUnmount(0);
-				exit(0);
-			}
+			if (iPressed & WPAD_BUTTON_HOME) exit(0);
 			if (iPressed & WPAD_BUTTON_1) TOGGLE(HW_GPIOB_OUT, SLOT_LED);
 			else if (iPressed & WPAD_BUTTON_2) TOGGLE(HW_GPIOB_OUT, DO_EJECT);
 		}
@@ -126,6 +122,5 @@ void die(const char* pcMsg)
 {
 	perror(pcMsg);
 	sleep(5);
-	fatUnmount(0);
 	exit(1);
 }

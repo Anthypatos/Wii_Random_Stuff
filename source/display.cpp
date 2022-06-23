@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdexcept>
 #include <cstring>
 #include <turbojpeg.h>
@@ -47,6 +48,7 @@ Jpeg::Jpeg(const char* pcFilename)
 	tjhandle tjhandle = nullptr;
 	u8* pJpegBuf = nullptr;
 	u64 lJpegSize = 0;
+	u8* pImgBuf;
 
 	/* Read the JPEG file into memory. */
     pfileJpeg = fopen(pcFilename, "rb");
@@ -65,10 +67,28 @@ Jpeg::Jpeg(const char* pcFilename)
 	tjDecompressHeader3(tjhandle, pJpegBuf, lJpegSize, &_iWidth, &_iHeight, &_iInSubsamp, 
 		&_iInColorspace);
 
-	_pImgBuf = (u8*)tjAlloc(_iWidth * _iHeight * tjPixelSize[TJPF_RGB]);
+	pImgBuf = (u8*)tjAlloc(_iWidth * _iHeight * tjPixelSize[TJPF_RGB]);
 
-	tjDecompress2(tjhandle, pJpegBuf, lJpegSize, _pImgBuf, _iWidth, 0, _iHeight, TJPF_RGB, 0);
+	tjDecompress2(tjhandle, pJpegBuf, lJpegSize, pImgBuf, _iWidth, 0, _iHeight, TJPF_RGB, 0);
 
+	_pImgBuf = new u32[_iHeight * (_iWidth >> 1)];
+
+	u32 iRow = 0, iColumn = 0;
+	for (u16 i = 0; i < _iHeight; i++)
+	{
+		iRow = i * _iWidth * 3;
+		for (u16 j = 0; j < (_iWidth >> 1); j++)
+		{
+			iColumn = j * 6;
+			_pImgBuf[i * (_iWidth >> 1) + j] = 
+				Jpeg::rgb2yuv(pImgBuf[iRow + iColumn], pImgBuf[iRow + iColumn + 1],
+					pImgBuf[iRow + iColumn + 2], pImgBuf[iRow + iColumn + 3], 
+					pImgBuf[iRow + iColumn + 4], pImgBuf[iRow + iColumn + 5]);
+		}
+	}
+
+	tjFree(pImgBuf);
+	pImgBuf = nullptr;
 	tjFree(pJpegBuf);  
 	pJpegBuf = nullptr;
     tjDestroy(tjhandle);
@@ -78,9 +98,9 @@ Jpeg::Jpeg(const char* pcFilename)
 
 Jpeg::Jpeg(const Jpeg& jpegOtro) noexcept : _iWidth{jpegOtro._iWidth}, _iHeight{jpegOtro._iHeight},
 	_iInSubsamp{jpegOtro._iInSubsamp}, _iInColorspace{jpegOtro._iInColorspace},
-	_pImgBuf{(u8*)tjAlloc(_iWidth * _iHeight * tjPixelSize[TJPF_RGB])}
+	_pImgBuf{new u32[(_iWidth >> 1) * _iHeight]}
 { 
-	memcpy(_pImgBuf, jpegOtro._pImgBuf, _iWidth * _iHeight * tjPixelSize[TJPF_RGB]); 
+	memcpy(_pImgBuf, jpegOtro._pImgBuf, (_iWidth << 1) * _iHeight); 
 }
 
 
@@ -88,15 +108,15 @@ Jpeg& Jpeg::operator =(const Jpeg& jpegOtro) noexcept
 {
 	if (this != &jpegOtro)
 	{
-		tjFree(_pImgBuf);
+		delete[] _pImgBuf;
 
 		_iWidth = jpegOtro._iWidth;
 		_iHeight = jpegOtro._iHeight;
 		_iInSubsamp = jpegOtro._iInSubsamp;
 		_iInColorspace = jpegOtro._iInColorspace;
-		_pImgBuf = (u8*)tjAlloc(_iWidth * _iHeight * tjPixelSize[TJPF_RGB]);
+		_pImgBuf = new u32[(_iWidth >> 1) * _iHeight];
 
-		memcpy(_pImgBuf, jpegOtro._pImgBuf, _iWidth * _iHeight * tjPixelSize[TJPF_RGB]);
+		memcpy(_pImgBuf, jpegOtro._pImgBuf, (_iWidth << 1) * _iHeight);
 	}
 
 	return *this;
@@ -105,7 +125,7 @@ Jpeg& Jpeg::operator =(const Jpeg& jpegOtro) noexcept
 
 Jpeg::~Jpeg()
 {
-	tjFree(_pImgBuf);
+	delete[] _pImgBuf;
 	_pImgBuf = nullptr;
 }
 
@@ -135,21 +155,13 @@ void Jpeg::display(u32 iX, u32 iY, void* xfb, const GXRModeObj& rmode) const
 {
 	if (iX < 0 || iX >= rmode.fbWidth || iY < 0 ||iY >= rmode.xfbHeight || 
 		iX + _iWidth > rmode.fbWidth || iY + _iHeight > rmode.xfbHeight) 
-			throw std::out_of_range("Out of the buffer range");
+		throw std::out_of_range("Out of the buffer range");
 
 	iX = iX * (rmode.fbWidth >> 1) / rmode.viWidth;
-	u32 iRow = 0, iColumn = 0;
 
 	for (u16 i = 0; i < _iHeight; i++)
 	{
-		iRow = i * _iWidth * 3;
-		for (u16 j = 0; j < (_iWidth >> 1); j++)
-		{
-			iColumn = j * 6;
-			((u32*)xfb)[(i + iY) * (rmode.fbWidth >> 1) + j + iX] = 
-				Jpeg::rgb2yuv(_pImgBuf[iRow + iColumn], _pImgBuf[iRow + iColumn + 1],
-					_pImgBuf[iRow + iColumn + 2], _pImgBuf[iRow + iColumn + 3], 
-					_pImgBuf[iRow + iColumn + 4], _pImgBuf[iRow + iColumn + 5]);
-		}
+		memcpy((((u32*)xfb) + (i + iY) * (rmode.fbWidth >> 1) + iX), (_pImgBuf + i * (_iWidth >> 1)), 
+			(_iWidth << 1));
 	}
 }
