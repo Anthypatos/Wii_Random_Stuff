@@ -1,6 +1,9 @@
-#include <iostream>
 #include <stdexcept>
+#include <iostream>
 #include <cstring>
+#include <algorithm>
+#include <ios>
+#include <new>
 #include <turbojpeg.h>
 #include <gctypes.h>
 #include <ogc/gx_struct.h>
@@ -36,16 +39,22 @@ JPEG::JPEG(const char* pcFilePath)
 {
 	FILE* pfileJpeg = nullptr;
 	u8* pJpegBuf = nullptr;
+	s64 lSize = 0;
 	u64 lJpegSize = 0;
 
 	/* Read the JPEG file into memory. */
-    pfileJpeg = fopen(pcFilePath, "rb");
-    fseek(pfileJpeg, 0, SEEK_END);
-    lJpegSize = (u64)ftell(pfileJpeg);
-    rewind(pfileJpeg);
+	if ((pfileJpeg = fopen(pcFilePath, "rb")) == nullptr) 
+		throw std::ios_base::failure("Error opening input file");
+	if (fseek(pfileJpeg, 0, SEEK_END) < 0 || ((lSize = ftell(pfileJpeg)) < 0) ||
+        fseek(pfileJpeg, 0, SEEK_SET) < 0)
+		throw std::ios_base::failure("Error determining input file size");
+	if (lSize == 0) throw std::ios_base::failure("Input file contains no data");
 
-    pJpegBuf = (u8*)tjAlloc(lJpegSize);
-    fread(pJpegBuf, lJpegSize, 1, pfileJpeg);
+	lJpegSize = static_cast<u64>(lSize);
+
+	if ((pJpegBuf = static_cast<u8*>(tjAlloc(lJpegSize))) == nullptr) throw std::bad_alloc();
+	if (fread(pJpegBuf, lJpegSize, 1, pfileJpeg) < 1) 
+		throw std::ios_base::failure("Error reading input file");
 
     fclose(pfileJpeg);
 	pfileJpeg = nullptr;
@@ -62,14 +71,17 @@ JPEG::JPEG(const u8* pJpegBuf, u64 lJpegSize)
 	tjhandle tjhandle = nullptr;
 	u8* pImgBuf = nullptr;
 
-	tjhandle = tjInitDecompress();
+	if ((tjhandle = tjInitDecompress()) == nullptr) 
+		throw std::runtime_error("Error initializing decompressor");
 
-	tjDecompressHeader3(tjhandle, pJpegBuf, lJpegSize, &_iWidth, &_iHeight, &_iInSubsamp, 
-		&_iInColorspace);
+	if (tjDecompressHeader3(tjhandle, pJpegBuf, lJpegSize, &_iWidth, &_iHeight, &_iInSubsamp, 
+		&_iInColorspace) < 0) throw std::runtime_error("Error reading JPEG header");
 
-	pImgBuf = (u8*)tjAlloc(_iWidth * _iHeight * tjPixelSize[TJPF_RGB]);
+	if ((pImgBuf = static_cast<u8*>(tjAlloc(_iWidth * _iHeight * tjPixelSize[TJPF_RGB]))) == nullptr)
+		throw std::bad_alloc();
 
-	tjDecompress2(tjhandle, pJpegBuf, lJpegSize, pImgBuf, _iWidth, 0, _iHeight, TJPF_RGB, 0);
+	if (tjDecompress2(tjhandle, pJpegBuf, lJpegSize, pImgBuf, _iWidth, 0, _iHeight, TJPF_RGB, 0) < 0)
+		throw std::runtime_error("Error decompressing JPEG imagen");
 
 	_pImgBuf = new u32[_iHeight * (_iWidth >> 1)];
 
@@ -94,7 +106,7 @@ JPEG::JPEG(const u8* pJpegBuf, u64 lJpegSize)
 }
 
 
-JPEG::JPEG(const JPEG& jpegOther) noexcept : _iWidth{jpegOther._iWidth}, _iHeight{jpegOther._iHeight},
+JPEG::JPEG(const JPEG& jpegOther) : _iWidth{jpegOther._iWidth}, _iHeight{jpegOther._iHeight},
 	_iInSubsamp{jpegOther._iInSubsamp}, _iInColorspace{jpegOther._iInColorspace},
 	_pImgBuf{new u32[(_iWidth >> 1) * _iHeight]}
 { 
@@ -114,7 +126,7 @@ JPEG::JPEG(JPEG&& jpegOther) noexcept : _iWidth{jpegOther._iWidth}, _iHeight{jpe
 }
 
 
-JPEG& JPEG::operator =(const JPEG& jpegOther) noexcept
+JPEG& JPEG::operator =(const JPEG& jpegOther)
 {
 	if (this != &jpegOther)
 	{
@@ -163,15 +175,26 @@ JPEG::~JPEG() noexcept
 }
 
 
-void JPEG::display(u32 iX, u32 iY, void* xfb, const GXRModeObj& rmode) const
+void JPEG::display(s32 iX, s32 iY, void* xfb, const GXRModeObj* rmode) const
 {
-	if (iX < 0 || iX >= rmode.fbWidth || iY < 0 ||iY >= rmode.xfbHeight || 
-		iX + _iWidth > rmode.fbWidth || iY + _iHeight > rmode.xfbHeight) 
-		throw std::out_of_range("Out of the buffer range");
+	iX = iX * (rmode->fbWidth >> 1) / rmode->viWidth;
 
-	iX = iX * (rmode.fbWidth >> 1) / rmode.viWidth;
+	bool bStop = false;
 
-	for (u16 i = 0; i < _iHeight; i++)
-		memcpy(((u32*)xfb) + (i + iY) * (rmode.fbWidth >> 1) + iX, _pImgBuf + i * (_iWidth >> 1), 
-			_iWidth << 1);
+	for (u16 i = 0; i < _iHeight && !bStop; i++)
+	{
+		if (iY + i < 0) i += (-iY - 1);
+		else if (iY + i >= rmode->xfbHeight) bStop = true;
+		else
+		{
+			if (iX < 0)
+				std::memcpy(static_cast<u32*>(xfb) + (iY + i) * (rmode->fbWidth >> 1), 
+					_pImgBuf + i * (_iWidth >> 1) + (-iX), 
+					std::min(((_iWidth >> 1) + iX) << 2, rmode->fbWidth << 1));
+			else if (iX < rmode->fbWidth)
+				std::memcpy(static_cast<u32*>(xfb) + (iY + i) * (rmode->fbWidth >> 1) + iX, 
+					_pImgBuf + i * (_iWidth >> 1), 
+					std::min(_iWidth << 1, ((rmode->fbWidth >> 1) - iX) << 2));
+		}
+	}
 }

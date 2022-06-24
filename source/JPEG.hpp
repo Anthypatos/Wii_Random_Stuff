@@ -35,14 +35,14 @@ public:
 
     explicit JPEG(const char* pcFilePath);
     explicit JPEG(const u8* pJpegBuf, u64 lJpegSize);
-    JPEG(const JPEG& jpegOther) noexcept;
+    JPEG(const JPEG& jpegOther);
     JPEG(JPEG&& jpegOther) noexcept;
     ~JPEG() noexcept;
 
-    JPEG& operator =(const JPEG& jpegOtro) noexcept;
+    JPEG& operator =(const JPEG& jpegOtro);
     JPEG& operator =(JPEG&& jpegOtro) noexcept;
 
-    void display(u32 iX, u32 iY, void* xfb, const GXRModeObj& rmode) const;
+    void display(s32 iX, s32 iY, void* xfb, const GXRModeObj* rmode) const;
 };
 inline s32 JPEG::getWidth() const noexcept { return _iWidth; }
 inline s32 JPEG::getHeight() const noexcept { return _iHeight; }

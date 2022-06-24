@@ -8,6 +8,7 @@
 #include "JPEG.hpp"
 #include "MACROS.hpp"
 #include "PORTS.hpp"
+#include "DRAW.hpp"
 #include "../build/coche_jpg.h"
 
 static void *xfb = NULL;
@@ -38,10 +39,9 @@ int main(int argc, char** argv)
 		WPAD_IR(WPAD_CHAN_0, &irT);
 		
 		VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
-		//drawBox(irT.x - 5, irT.y - 5, irT.x + 5, irT.y + 5, COLOR_WHITE);
-		try { imagen.display(irT.x - (imagen.getWidth() >> 1), irT.y - (imagen.getHeight() >> 1), xfb, 
-				*rmode); }
-		catch (const std::out_of_range& oorException) { std::cout << "\x1b[2;0H" << oorException.what(); }
+		//drawBox(irT.x - 5, irT.y - 5, irT.x + 5, irT.y + 5, COLOR_WHITE, xfb, rmode);
+		imagen.display(static_cast<s32>(irT.x) - (imagen.getWidth() >> 1), 
+			static_cast<s32>(irT.y) - (imagen.getHeight() >> 1), xfb, rmode);
 
 		// WPAD_ButtonsDown tells us which buttons were pressed in this loop
 		// this is a "one shot" state which will not fire again until the button has been released
