@@ -1,9 +1,9 @@
 #include <gctypes.h>
 #include <ogc/gx_struct.h>
-#include "DRAW.hpp"
+#include "../include/DRAW.hpp"
 
 
-void drawHorizontalLine(s32 iX1, s32 iX2, s32 iY, u32 iColor, void *xfb, const GXRModeObj* rmode)
+void DRAW_horizontalLine(s32 iX1, s32 iX2, s32 iY, u32 iColor, void *xfb, const GXRModeObj* rmode)
 {
 	if (iY >= 0 && iY < rmode->xfbHeight)
 	{
@@ -18,7 +18,7 @@ void drawHorizontalLine(s32 iX1, s32 iX2, s32 iY, u32 iColor, void *xfb, const G
 }
 
 
-void drawVerticalLine(s32 iX, s32 iY1, s32 iY2, u32 iColor, void *xfb, const GXRModeObj* rmode)
+void DRAW_verticalLine(s32 iX, s32 iY1, s32 iY2, u32 iColor, void *xfb, const GXRModeObj* rmode)
 {
 	if (iX >= 0 && iX < rmode->fbWidth)
 	{
@@ -32,10 +32,10 @@ void drawVerticalLine(s32 iX, s32 iY1, s32 iY2, u32 iColor, void *xfb, const GXR
 }
 
 
-void drawBox(s32 iX1, s32 iY1, s32 iX2, s32 iY2, u32 iColor, void *xfb, const GXRModeObj* rmode)
+void DRAW_box(s32 iX1, s32 iY1, s32 iX2, s32 iY2, u32 iColor, void *xfb, const GXRModeObj* rmode)
 {
-	drawHorizontalLine(iX1, iX2, iY1, iColor, xfb, rmode);
-	drawHorizontalLine(iX1, iX2, iY2, iColor, xfb, rmode);
-	drawVerticalLine(iX1, iY1, iY2, iColor, xfb, rmode);
-	drawVerticalLine(iX2, iY1, iY2, iColor, xfb, rmode);
+	DRAW_horizontalLine(iX1, iX2, iY1, iColor, xfb, rmode);
+	DRAW_horizontalLine(iX1, iX2, iY2, iColor, xfb, rmode);
+	DRAW_verticalLine(iX1, iY1, iY2, iColor, xfb, rmode);
+	DRAW_verticalLine(iX2, iY1, iY2, iColor, xfb, rmode);
 }

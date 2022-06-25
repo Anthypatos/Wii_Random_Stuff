@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Wii",
+            "includePath": [
+                "${DEVKITPRO}/libogc/include/**",
+                "${DEVKITPPC}/lib/gcc/powerpc-eabi/11.2.0/include/**",
+                "${DEVKITPPC}/powerpc-eabi/include/**",
+                "${DEVKITPRO}/portlibs/ppc/include",
+                "${DEVKITPRO}/libogc/include/ogc"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "${default}",
+            "compilerArgs": [],
+            "compilerPath": "${DEVKITPPC}/bin/powerpc-eabi-g++",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}

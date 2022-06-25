@@ -7,11 +7,11 @@
 #include <turbojpeg.h>
 #include <gctypes.h>
 #include <ogc/gx_struct.h>
-#include "JPEG.hpp"
+#include "../include/JPEG.hpp"
 
 
-const char* JPEG::subsampName[] = {"4:4:4", "4:2:2", "4:2:0", "Grayscale", "4:4:0", "4:1:1"};
-const char* JPEG::colorspaceName[] = {"RGB", "YCbCr", "GRAY", "CMYK", "YCCK"};
+const char* JPEG::SCpcSubsampName[] = {"4:4:4", "4:2:2", "4:2:0", "Grayscale", "4:4:0", "4:1:1"};
+const char* JPEG::SCpcColorspaceName[] = {"RGB", "YCbCr", "GRAY", "CMYK", "YCCK"};
 
 
 //---------------------------------------------------------------------------------
@@ -66,7 +66,7 @@ JPEG::JPEG(const char* pcFilePath)
 }
 
 
-JPEG::JPEG(const u8* pJpegBuf, u64 lJpegSize) 
+JPEG::JPEG(const u8* pJpegBuf, u64 lJpegSize) : _iPosX{0}, _iPosY{0}
 {
 	tjhandle tjhandle = nullptr;
 	u8* pImgBuf = nullptr;
@@ -175,8 +175,10 @@ JPEG::~JPEG() noexcept
 }
 
 
-void JPEG::display(s32 iX, s32 iY, void* xfb, const GXRModeObj* rmode) const
+void JPEG::display(s32 iX, s32 iY, void* xfb, const GXRModeObj* rmode)
 {
+	_iPosX = iX;
+	_iPosY = iY;
 	iX = iX * (rmode->fbWidth >> 1) / rmode->viWidth;
 
 	bool bStop = false;

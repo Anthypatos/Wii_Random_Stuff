@@ -5,19 +5,22 @@
 #include <fat.h>
 #include <dirent.h>
 #include <unistd.h>
-#include "JPEG.hpp"
-#include "MACROS.hpp"
-#include "PORTS.hpp"
-#include "DRAW.hpp"
-#include "../build/coche_jpg.h"
+#include "../include/JPEG.hpp"
+#include "../include/MACROS.hpp"
+#include "../include/PORTS.hpp"
+#include "../include/DRAW.hpp"
+#include "../build/no_jpg.h"
+#include "../build/yes_jpg.h"
 
-static void *xfb = NULL;
-static GXRModeObj *rmode = NULL;
 
+enum State_t {STATE_NO, STATE_YES};
 
 void initialise();
 void initialise_fat();
 void die(const char* pcMsg);
+
+static void *xfb = nullptr;
+static GXRModeObj *rmode = nullptr;
 
 //---------------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -27,8 +30,9 @@ int main(int argc, char** argv)
 	initialise_fat();
 
 	ir_t irT;
-	//JPEG imagen("/apps/test/resources/coche.jpg");
-	JPEG imagen(coche_jpg, coche_jpg_size);
+	JPEG imageNo(no_jpg, no_jpg_size);
+	JPEG imageYes(yes_jpg, yes_jpg_size);
+	State_t stateCurrent = STATE_NO;
 
 	while(1) 
 	{
@@ -39,20 +43,43 @@ int main(int argc, char** argv)
 		WPAD_IR(WPAD_CHAN_0, &irT);
 		
 		VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
-		//drawBox(irT.x - 5, irT.y - 5, irT.x + 5, irT.y + 5, COLOR_WHITE, xfb, rmode);
-		imagen.display(static_cast<s32>(irT.x) - (imagen.getWidth() >> 1), 
-			static_cast<s32>(irT.y) - (imagen.getHeight() >> 1), xfb, rmode);
+
+		switch (stateCurrent)
+		{
+			case STATE_YES: imageYes.display(320, 240, xfb, rmode); break;
+			case STATE_NO: imageNo.display(320, 240, xfb, rmode); break;
+		}
+		DRAW_box(irT.x - 5, irT.y - 5, irT.x + 5, irT.y + 5, COLOR_WHITE, xfb, rmode);
+		
+		std::cout << "\x1b[2;0Hx = " << irT.x << " y = " << irT.y;
 
 		// WPAD_ButtonsDown tells us which buttons were pressed in this loop
 		// this is a "one shot" state which will not fire again until the button has been released
-		u32 iPressed = WPAD_ButtonsDown(WPAD_CHAN_0);
+		u32 iButtonsDown = WPAD_ButtonsDown(WPAD_CHAN_0);
 
-		if (iPressed)
+		if (iButtonsDown)
 		{
 			// We return to the launcher application via exit
-			if (iPressed & WPAD_BUTTON_HOME) exit(0);
-			if (iPressed & WPAD_BUTTON_1) TOGGLE(HW_GPIOB_OUT, SLOT_LED);
-			else if (iPressed & WPAD_BUTTON_2) TOGGLE(HW_GPIOB_OUT, DO_EJECT);
+			if (iButtonsDown & WPAD_BUTTON_HOME) exit(0);
+			else if (iButtonsDown & WPAD_BUTTON_1) TOGGLE(HW_GPIOB_OUT, SLOT_LED);
+			else if (iButtonsDown & WPAD_BUTTON_2) TOGGLE(HW_GPIOB_OUT, DO_EJECT);
+			else if (iButtonsDown & WPAD_BUTTON_A)
+			{
+				switch (stateCurrent)
+				{
+				case STATE_NO:
+					if (irT.x >= imageNo.getPosX() && irT.x < imageNo.getPosX() + imageNo.getWidth() &&
+						irT.y >= imageNo.getPosY() && irT.y < imageNo.getPosY() + imageNo.getHeight())
+						stateCurrent = STATE_YES;
+					break;
+				
+				case STATE_YES:
+					if (irT.x >= imageYes.getPosX() && irT.x < imageYes.getPosX() + imageYes.getWidth() &&
+						irT.y >= imageYes.getPosY() && irT.y < imageYes.getPosY() + imageNo.getHeight())
+						stateCurrent = STATE_NO;
+					break;
+				}
+			}
 		}
 
 		// Wait for the next frame
