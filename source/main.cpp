@@ -12,11 +12,10 @@
 #include "../build/no_jpg.h"
 #include "../build/yes_jpg.h"
 
-
-enum State_t {STATE_NO, STATE_YES};
-
 void initialise();
 void initialise_fat();
+void ISR_Power();
+void ISR_Reset(u32 iIRQ, void* context);
 void die(const char* pcMsg);
 
 static void *xfb = nullptr;
@@ -30,9 +29,9 @@ int main(int argc, char** argv)
 	initialise_fat();
 
 	ir_t irT;
+	bool bState = false;
 	JPEG imageNo(no_jpg, no_jpg_size);
 	JPEG imageYes(yes_jpg, yes_jpg_size);
-	State_t stateCurrent = STATE_NO;
 
 	while(1) 
 	{
@@ -43,13 +42,11 @@ int main(int argc, char** argv)
 		WPAD_IR(WPAD_CHAN_0, &irT);
 		
 		VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
-
-		switch (stateCurrent)
-		{
-			case STATE_YES: imageYes.display(320, 240, xfb, rmode); break;
-			case STATE_NO: imageNo.display(320, 240, xfb, rmode); break;
-		}
-		DRAW_box(irT.x - 5, irT.y - 5, irT.x + 5, irT.y + 5, COLOR_WHITE, xfb, rmode);
+		if (!bState) imageNo.display((rmode->viWidth >> 1) - imageNo.getWidth(), 
+			(rmode->viHeight >> 1) - imageNo.getHeight(), xfb, rmode);
+		else imageYes.display((rmode->viWidth >> 1) - imageYes.getWidth(), 
+			(rmode->viHeight >> 1) - imageYes.getHeight(), xfb, rmode);
+		if (irT.valid) DRAW_box(irT.x - 5, irT.y - 5, irT.x + 5, irT.y + 5, COLOR_WHITE, xfb, rmode);
 		
 		std::cout << "\x1b[2;0Hx = " << irT.x << " y = " << irT.y;
 
@@ -63,22 +60,11 @@ int main(int argc, char** argv)
 			if (iButtonsDown & WPAD_BUTTON_HOME) exit(0);
 			else if (iButtonsDown & WPAD_BUTTON_1) TOGGLE(HW_GPIOB_OUT, SLOT_LED);
 			else if (iButtonsDown & WPAD_BUTTON_2) TOGGLE(HW_GPIOB_OUT, DO_EJECT);
-			else if (iButtonsDown & WPAD_BUTTON_A)
+			else if (iButtonsDown & WPAD_BUTTON_A && irT.valid)
 			{
-				switch (stateCurrent)
-				{
-				case STATE_NO:
-					if (irT.x >= imageNo.getPosX() && irT.x < imageNo.getPosX() + imageNo.getWidth() &&
-						irT.y >= imageNo.getPosY() && irT.y < imageNo.getPosY() + imageNo.getHeight())
-						stateCurrent = STATE_YES;
-					break;
-				
-				case STATE_YES:
-					if (irT.x >= imageYes.getPosX() && irT.x < imageYes.getPosX() + imageYes.getWidth() &&
-						irT.y >= imageYes.getPosY() && irT.y < imageYes.getPosY() + imageNo.getHeight())
-						stateCurrent = STATE_NO;
-					break;
-				}
+				if (irT.x >= imageNo.getPosX() && irT.x < imageNo.getPosX() + imageNo.getWidth() &&
+					irT.y >= imageNo.getPosY() && irT.y < imageNo.getPosY() + imageNo.getHeight())
+					bState = !bState;
 			}
 		}
 
@@ -130,8 +116,11 @@ void initialise()
 	// e.g. printf ("\x1b[%d;%dH", row, column );
 	std::cout << "\x1b[2;0H";
 
-	WPAD_SetVRes(WPAD_CHAN_0, rmode->viWidth, rmode->viHeight);
-	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
+	WPAD_SetVRes(WPAD_CHAN_ALL, rmode->viWidth, rmode->viHeight);
+	WPAD_SetDataFormat(WPAD_CHAN_ALL, WPAD_FMT_BTNS_ACC_IR);
+
+	SYS_SetPowerCallback(ISR_Power);
+	SYS_SetResetCallback(ISR_Reset);
 }
 
 void initialise_fat()
@@ -145,6 +134,12 @@ void initialise_fat()
 
 	closedir(pDir);
 }
+
+
+void ISR_Power() { SYS_ResetSystem(SYS_POWEROFF, 0, 0); }
+
+
+void ISR_Reset(u32 iIRQ, void* context) { SYS_ResetSystem(SYS_HOTRESET, 0, 0); }
 
 
 void die(const char* pcMsg)

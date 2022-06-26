@@ -10,8 +10,8 @@
 #include "../include/JPEG.hpp"
 
 
-const char* JPEG::SCpcSubsampName[] = {"4:4:4", "4:2:2", "4:2:0", "Grayscale", "4:4:0", "4:1:1"};
-const char* JPEG::SCpcColorspaceName[] = {"RGB", "YCbCr", "GRAY", "CMYK", "YCCK"};
+const char* JPEG::SCapcSubsampName[] = {"4:4:4", "4:2:2", "4:2:0", "Grayscale", "4:4:0", "4:1:1"};
+const char* JPEG::SCapcColorspaceName[] = {"RGB", "YCbCr", "GRAY", "CMYK", "YCCK"};
 
 
 //---------------------------------------------------------------------------------
@@ -180,6 +180,7 @@ void JPEG::display(s32 iX, s32 iY, void* xfb, const GXRModeObj* rmode)
 	_iPosX = iX;
 	_iPosY = iY;
 	iX = iX * (rmode->fbWidth >> 1) / rmode->viWidth;
+	iY = iY * rmode->xfbHeight / rmode->viHeight;
 
 	bool bStop = false;
 

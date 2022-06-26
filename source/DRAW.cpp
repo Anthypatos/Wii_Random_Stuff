@@ -9,6 +9,7 @@ void DRAW_horizontalLine(s32 iX1, s32 iX2, s32 iY, u32 iColor, void *xfb, const 
 	{
 		iX1 = iX1 * (rmode->fbWidth >> 1) / rmode->viWidth;
 		iX2 = iX2 * (rmode->fbWidth >> 1) / rmode->viWidth;
+		iY = iY * rmode->xfbHeight / rmode->viHeight;
 
 		if (iX1 < 0) iX1 = 0;
 		if (iX2 >= (rmode->fbWidth >> 1)) iX2 = (rmode->fbWidth >> 1) - 1;
@@ -23,6 +24,8 @@ void DRAW_verticalLine(s32 iX, s32 iY1, s32 iY2, u32 iColor, void *xfb, const GX
 	if (iX >= 0 && iX < rmode->fbWidth)
 	{
 		iX = iX * (rmode->fbWidth >> 1) / rmode->viWidth;
+		iY1 = iY1 * rmode->xfbHeight / rmode->viHeight;
+		iY2 = iY2 * rmode->xfbHeight / rmode->viHeight;
 
 		if (iY1 < 0) iY1 = 0;
 		if (iY2 >= rmode->xfbHeight) iY2 = rmode->xfbHeight - 1;

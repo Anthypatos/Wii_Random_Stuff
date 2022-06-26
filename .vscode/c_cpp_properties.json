@@ -12,7 +12,8 @@
             "defines": [
                 "_DEBUG",
                 "UNICODE",
-                "_UNICODE"
+                "_UNICODE",
+                "HW_RVL"
             ],
             "cStandard": "c17",
             "cppStandard": "c++17",

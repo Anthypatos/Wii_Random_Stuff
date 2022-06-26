@@ -8,8 +8,8 @@
 				
 */
 
-#ifndef DISPLAY_HPP_
-#define DISPLAY_HPP_
+#ifndef JPEG_HPP_
+#define JPEG_HPP_
 
 #include <gctypes.h>
 #include <ogc/gx_struct.h>
@@ -19,31 +19,9 @@
  */
 class JPEG
 {
-private:
-    s32 _iWidth;            /**< Width of the image in pixels */
-    s32 _iHeight;           /**< Height of the image in pixels */
-    s32 _iInSubsamp;        /**< Index that represents the subsampling of the image */
-    s32 _iInColorspace;     /**< Index that represents the colorspace of the image */
-    s32 _iPosX;             /**< Coordinate X for the top left corner of the displayed image on the canvas*/
-    s32 _iPosY;             /**< Coordinate Y for the top left corner of the displayed image on the canvas*/
-    u32* _pImgBuf;          /**< Image buffer in Y1CbY2Cr values */
-
-    /**
-     * @brief Convert two RGB pixels to one Y1CbY2Cr
-     * 
-     * @param r1 8-bit value for the red component of the first pixel
-     * @param g1 8-bit value for the green component of the first pixel
-     * @param b1 8-bit value for the blue component of the first pixel
-     * @param r2 8-bit value for the red component of the second pixel
-     * @param g2 8-bit value for the green component of the second pixel
-     * @param b2 8-bit value for the blue component of the second pixel
-     * @return u32 32-bit value for the converted Y1CbY2Cr pixel
-     */
-    static u32 rgb2yuv(u8 r1, u8 g1, u8 b1, u8 r2, u8 g2, u8 b2) noexcept;
-
 public:
-    static const char* SCpcSubsampName[];       /**< Strings for the different types of sumsampling */
-    static const char* SCpcColorspaceName[];    /**< Strings for the different types of colorspaces */
+    static const char* SCapcSubsampName[];       /**< Strings for the different types of sumsampling */
+    static const char* SCapcColorspaceName[];    /**< Strings for the different types of colorspaces */
 
     /** Getters */
     const u32* getImgBuf() const noexcept;
@@ -82,8 +60,18 @@ public:
      * @param rmode a rendermode object holding the rendering parameters
      */
     void display(s32 iX, s32 iY, void* xfb, const GXRModeObj* rmode);
+
+private:
+    s32 _iWidth;            /**< Width of the image in pixels */
+    s32 _iHeight;           /**< Height of the image in pixels */
+    s32 _iInSubsamp;        /**< Index that represents the subsampling of the image */
+    s32 _iInColorspace;     /**< Index that represents the colorspace of the image */
+    s32 _iPosX;             /**< Coordinate X for the top left corner of the displayed image on the canvas*/
+    s32 _iPosY;             /**< Coordinate Y for the top left corner of the displayed image on the canvas*/
+    u32* _pImgBuf;          /**< Image buffer in Y1CbY2Cr values */
+
+    static u32 rgb2yuv(u8 r1, u8 g1, u8 b1, u8 r2, u8 g2, u8 b2) noexcept;
 };
-/** Inline definition of member functions */
 inline s32 JPEG::getWidth() const noexcept { return _iWidth; }
 inline s32 JPEG::getHeight() const noexcept { return _iHeight; }
 inline s32 JPEG::getInSubsamp() const noexcept { return _iInSubsamp; }
