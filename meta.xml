@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<app version="1">
+	<name>Wii Random Stuff</name>
+	<version>0.1</version>
+	<release_date>20220629000000</release_date>
+	<coder>Quadraxis_v2</coder>
+	<short_description>Random snippets for the Wii</short_description>
+	<long_description>Tests of different subsystems</long_description>
+<ahb_access/>
+</app>
