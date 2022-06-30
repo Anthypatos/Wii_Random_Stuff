@@ -1,68 +1,89 @@
 #include <iostream>
+#include <ios>
 #include <cstdlib>
+#include <string>
 #include <dirent.h>
 #include <unistd.h>
 #include <gccore.h>
 #include <wiiuse/wpad.h>
 #include <fat.h>
-#include <asndlib.h>
-#include <mp3player.h>
-#include <jansson.h>
+//#include <asndlib.h>
+//#include <mp3player.h>
+#include <aesndlib.h>
+#include <gcmodplay.h>
 #include "../include/SETTINGS.hpp"
 #include "../include/JPEG.hpp"
 #include "../include/MACROS.hpp"
 #include "../include/PORTS.hpp"
 #include "../include/DRAW.hpp"
+//#include "../build/sample_mp3.h"
+#include "../build/technique_mod.h"
 #include "../build/no_jpg.h"
 #include "../build/yes_jpg.h"
-#include "../build/sample_mp3.h"
 
 void initialise();
 void initialise_fat();
+void load_settings(const std::string& sFilePath = Settings::SCsDefaultPath);
 void die(const char* pcMsg);
 
+//-----------------------------------  ISR -----------------------------------------
 void ISR_Power() { SYS_ResetSystem(SYS_POWEROFF, 0, 0); }
 void ISR_Reset(u32 iIRQ, void* pContext) { SYS_ResetSystem(SYS_HOTRESET, 0, 0); }
 
-static void *xfb = nullptr;
-static GXRModeObj *rmode = nullptr;
+static void *xfb = nullptr;				// Pointer to the XFB region
+static GXRModeObj *rmode = nullptr;		// Rendermode object holding the rendering parameters
+static MODPlay play;					// Playmode object for playing sounds
+static Settings settings{};				// Global configuration object
 
-//---------------------------------------------------------------------------------
+//----------------------------------- MAIN ----------------------------------------
 int main(int argc, char** argv)
-//---------------------------------------------------------------------------------
 {
 	initialise();
 	initialise_fat();
 
-	ir_t irT;
-	Settings settings("/apps/test/settings.json");
+	ir_t ir;
 	JPEG imageNo(no_jpg, no_jpg_size);
 	JPEG imageYes(yes_jpg, yes_jpg_size);
+	load_settings(Settings::SCsDefaultPath);
 
-	while(1) 
+	MODPlay_SetMOD(&play, technique_mod);
+	MODPlay_SetVolume(&play, 63, 63);
+
+	while(true) 
 	{
 		// Call WPAD_ScanPads each loop, this reads the latest controller states
 		WPAD_ScanPads();
 		
 		// IR Movement
-		WPAD_IR(WPAD_CHAN_0, &irT);
+		WPAD_IR(WPAD_CHAN_0, &ir);
 		
-		VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
-		if (!settings.getBackgroundMusic()) 
+		VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);	// Clears the screen completely
+		if (!settings.getBackgroundMusic())					// Music off - show a "no" button
 		{
-			if (MP3Player_IsPlaying()) MP3Player_Stop();
 			imageNo.display((rmode->viWidth - imageNo.getWidth()) >> 1, 
 			(rmode->viHeight - imageNo.getHeight()) >> 1, xfb, rmode);
+
+			//if (MP3Player_IsPlaying()) MP3Player_Stop();
+			if (play.playing && !play.paused) MODPlay_Pause(&play, true);
 		}
-		else 
+		else 												// Music on - show a "yes" button
 		{
-			if (!MP3Player_IsPlaying()) MP3Player_PlayBuffer(sample_mp3, sample_mp3_size, nullptr);
 			imageYes.display((rmode->viWidth - imageYes.getWidth()) >> 1, 
 			(rmode->viHeight - imageYes.getHeight()) >> 1, xfb, rmode);
+
+			//if (!MP3Player_IsPlaying()) MP3Player_PlayBuffer(sample_mp3, sample_mp3_size, nullptr);
+			if (!play.playing) MODPlay_Start(&play);
+			else if (play.paused) MODPlay_Pause(&play, false);
 		}
-		if (irT.valid) DRAW_box(irT.x - 5, irT.y - 5, irT.x + 5, irT.y + 5, COLOR_WHITE, xfb, rmode);
+		// Draw the cursor
+		if (ir.valid) DRAW_box(ir.x - 5, ir.y - 5, ir.x + 5, ir.y + 5, COLOR_WHITE, xfb, rmode);
 		
-		std::cout << "\x1b[2;0Hx = " << irT.x << " y = " << irT.y << std::endl;
+		// Rumble on-off
+		if (!settings.getRumble()) WPAD_Rumble(WPAD_CHAN_0, 0);
+		else WPAD_Rumble(WPAD_CHAN_0, 1);
+		
+		std::cout << "\x1b[2;0Hx = " << ir.x << " y = " << ir.y << std::endl <<
+		"Background music = " << settings.getBackgroundMusic() << " Rumble = " << settings.getRumble();
 
 		// WPAD_ButtonsDown tells us which buttons were pressed in this loop
 		// this is a "one shot" state which will not fire again until the button has been released
@@ -73,21 +94,27 @@ int main(int argc, char** argv)
 			// We return to the launcher application via exit
 			if (iButtonsDown & WPAD_BUTTON_HOME) 
 			{
-				if (MP3Player_IsPlaying()) MP3Player_Stop();
+				//if (MP3Player_IsPlaying()) MP3Player_Stop();
+				if (play.playing) MODPlay_Stop(&play);
+				fatUnmount(0);
 				exit(0);
 			}
 			else if (iButtonsDown & WPAD_BUTTON_1) TOGGLE(HW_GPIOB_OUT, SLOT_LED);
 			else if (iButtonsDown & WPAD_BUTTON_2) TOGGLE(HW_GPIOB_OUT, DO_EJECT);
-			else if (iButtonsDown & WPAD_BUTTON_A && irT.valid)
+			else if (iButtonsDown & WPAD_BUTTON_A && ir.valid)
 			{
-				if (settings.getBackgroundMusic() && irT.x >= imageYes.getPosX() && 
-					irT.x < (imageYes.getPosX() + imageYes.getWidth()) && irT.y >= imageYes.getPosY() && 
-					irT.y < (imageYes.getPosY() + imageYes.getHeight()))
-					settings.setBackgroundMusic(false);
-				else if (!settings.getBackgroundMusic() && irT.x >= imageNo.getPosX() && 
-					irT.x < (imageNo.getPosX() + imageNo.getWidth()) && irT.y >= imageNo.getPosY() && 
-					irT.y < (imageNo.getPosY() + imageNo.getHeight()))
-					settings.setBackgroundMusic(true);
+				// Change the settings and save them on disk when clicking the button
+				if ((settings.getBackgroundMusic() && ir.x >= imageYes.getPosX() && 
+					ir.x < (imageYes.getPosX() + imageYes.getWidth()) && ir.y >= imageYes.getPosY() && 
+					ir.y < (imageYes.getPosY() + imageYes.getHeight())) ||
+					(!settings.getBackgroundMusic() && ir.x >= imageNo.getPosX() && 
+					ir.x < (imageNo.getPosX() + imageNo.getWidth()) && ir.y >= imageNo.getPosY() && 
+					ir.y < (imageNo.getPosY() + imageNo.getHeight())))
+				{
+					settings.setBackgroundMusic(!settings.getBackgroundMusic());
+					settings.setRumble(!settings.getRumble());
+					settings.save(Settings::SCsDefaultPath);
+				}
 			}
 		}
 
@@ -99,6 +126,10 @@ int main(int argc, char** argv)
 }
 
 
+/**
+ * @brief Initialise essential subsystems
+ * 
+ */
 void initialise()
 {
 	// Initialise the video system
@@ -108,8 +139,10 @@ void initialise()
 	WPAD_Init();
 
 	// Initialise the audio subsystem
-	ASND_Init();
-	MP3Player_Init();
+	//ASND_Init();
+	//MP3Player_Init();
+	AESND_Init();
+	MODPlay_Init(&play);
 
 	// Obtain the preferred video mode from the system
 	// This will correspond to the settings in the Wii menu
@@ -150,6 +183,11 @@ void initialise()
 	SYS_SetResetCallback(ISR_Reset);
 }
 
+
+/**
+ * @brief Initialise FAT subsystem
+ * 
+ */
 void initialise_fat()
 {
 	if (!fatInitDefault()) die("fatInitDefault failure: terminating\n");
@@ -163,9 +201,28 @@ void initialise_fat()
 }
 
 
+/**
+ * @brief Loads global configuration
+ * 
+ * @param sFilePath the path to the configuration in the filesystem
+ */
+void load_settings(const std::string& sFilePath)
+{
+	// Loads
+	try { settings = Settings(sFilePath); }
+	catch (std::ios_base::failure& iof) { settings.save(sFilePath); }
+}
+
+
+/**
+ * @brief Early exits the application
+ * 
+ * @param pcMsg error message to print on the screen
+ */
 void die(const char* pcMsg)
 {
 	perror(pcMsg);
 	sleep(5);
+	fatUnmount(0);
 	exit(1);
 }

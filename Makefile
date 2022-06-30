@@ -18,7 +18,7 @@ include $(DEVKITPPC)/wii_rules
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source
-DATA		:=	data
+DATA		:=	data/images data/sounds
 INCLUDES	:=	include
 
 #---------------------------------------------------------------------------------
@@ -33,7 +33,8 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	-lwiiuse -lbte -ljansson -lmad -lasnd -lfat -logc -lturbojpeg -lm
+LIBS	:=	-lwiiuse -lbte -ljansson -lmodplay -laesnd -lfat -logc -lturbojpeg -lm
+# For MP3s: -lmad -lasnd
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -131,6 +132,16 @@ $(OFILES_SOURCES) : $(HFILES)
 # This rule links in binary data with the .jpg extension
 #---------------------------------------------------------------------------------
 %.jpg.o	%_jpg.h :	%.jpg
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	$(bin2o)
+
+-include $(DEPENDS)
+
+#---------------------------------------------------------------------------------
+# This rule links in binary data with the .mod extension
+#---------------------------------------------------------------------------------
+%.mod.o	%_mod.h :	%.mod
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	$(bin2o)

@@ -11,6 +11,7 @@
 #ifndef JPEG_HPP_
 #define JPEG_HPP_
 
+#include <string>
 #include <gctypes.h>
 #include <ogc/gx_struct.h>
 
@@ -20,8 +21,8 @@
 class JPEG
 {
 public:
-    static const char* SCapcSubsampName[];       /**< Strings for the different types of sumsampling */
-    static const char* SCapcColorspaceName[];    /**< Strings for the different types of colorspaces */
+    static const std::string SCasSubsampName[];       /**< Strings for the different types of sumsampling */
+    static const std::string SCasColorspaceName[];    /**< Strings for the different types of colorspaces */
 
     /** Getters */
     const u32* getImgBuf() const noexcept;
@@ -34,26 +35,28 @@ public:
 
     /**
      * @brief Construct a new JPEG object from a file in the filesystem
-     * @param pcFilePath the path to the image in the filesystem
+     * @param sFilePath the path to the image in the filesystem
      */
-    explicit JPEG(const char* pcFilePath);
+    explicit JPEG(const std::string& sFilePath);
 
     /**
      * @brief Construct a new JPEG object from an image buffer
-     * @param pJpegBuf the buffer for the RGB image
+     * @param pJpegBuf pointer to the buffer of the compressed image
      * @param lJpegSize the size of the image in bytes
      */
     explicit JPEG(const u8* pJpegBuf, u64 lJpegSize);
-
+    
     JPEG(const JPEG& jpegOther);        /**< Copy constructor */
     JPEG(JPEG&& jpegOther) noexcept;    /**< Movement constructor */
     ~JPEG() noexcept;                   /**< Destructor */
 
-    JPEG& operator =(const JPEG& jpegOtro);         /**< Assign and copy operator */
-    JPEG& operator =(JPEG&& jpegOtro) noexcept;     /**< Assign and movement operator */
+    JPEG& operator =(const JPEG& jpegOtro);         /**< Assign with copy operator */
+    JPEG& operator =(JPEG&& jpegOtro) noexcept;     /**< Assign with movement operator */
 
     /**
-     * @brief Displays the JPEG on the XFB
+     * @brief Displays the JPEG on the XFB. Width or height of the image can be out
+     * of the XFB depending on the given coordinates. In those cases, the image will
+     * be partially displayed
      * @param iX the coordinate X of the top left corner of the image on the canvas
      * @param iY the coordinate Y of the top left corner of the image on the canvas
      * @param xfb a pointer to the start of the XFB region
