@@ -7,6 +7,7 @@ Currently it provides code for:
  - Using JSON to store and use settings
  - Some form of rudimentary user interface
  - Using GPIOs and interrupts
+ 
 This will (hopefully) be expanded in the future.
 
 # Compiling this project
