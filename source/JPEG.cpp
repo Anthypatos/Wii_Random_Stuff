@@ -214,20 +214,24 @@ JPEG::~JPEG() noexcept
  * @brief Displays the JPEG on the XFB. Width or height of the image can be out
  * of the XFB depending on the given coordinates. In those cases, the image will
  * be partially displayed
- * @param iX the coordinate X of the top left corner of the image on the canvas
- * @param iY the coordinate Y of the top left corner of the image on the canvas
+ * 
  * @param xfb a pointer to the start of the XFB region
  * @param rmode a rendermode object holding the rendering parameters
+ * @param iOriginalWidth the width of the canvas that is being drawn
+ * @param iOriginalHeight the height of the canvas that is being drawn
+ * @param iX the coordinate X of the top left corner of the image on the canvas
+ * @param iY the coordinate Y of the top left corner of the image on the canvas
  */
-void JPEG::display(s32 iX, s32 iY, void* xfb, const GXRModeObj* rmode)
+void JPEG::display(void* xfb, const GXRModeObj* rmode, u32 iOriginalWidth, u32 iOriginalHeight, 
+	s32 iX, s32 iY)
 {
 	// Store the given positions
 	_iPosX = iX;
 	_iPosY = iY;
 
 	// Rule of thumb to translate coordinates to the XFB
-	iX = iX * (rmode->fbWidth >> 1) / rmode->viWidth;
-	iY = iY * rmode->xfbHeight / rmode->viHeight;
+	iX = iX * (rmode->fbWidth >> 1) / iOriginalWidth;
+	iY = iY * rmode->xfbHeight / iOriginalHeight;
 
 	bool bStop = false;	// Stop flag for the copy process
 

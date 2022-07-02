@@ -28,7 +28,7 @@ void load_settings(const std::string& sFilePath = Settings::SCsDefaultPath);
 void die(const char* pcMsg);
 
 
-static void *xfb = nullptr;				// Pointer to the XFB region
+static void* xfb[2];					// Pointer to the XFB region
 static GXRModeObj *rmode = nullptr;		// Rendermode object holding the rendering parameters
 static MODPlay play;					// Playmode object for playing sounds
 static Settings settings{};				// Global configuration object
@@ -47,6 +47,7 @@ int main(int argc, char** argv)
 	initialise();
 	initialise_fat();
 
+	u8 iXFB = 0;
 	ir_t ir;
 	JPEG imageNo(no_jpg, no_jpg_size);
 	JPEG imageYes(yes_jpg, yes_jpg_size);
@@ -62,27 +63,34 @@ int main(int argc, char** argv)
 		
 		// IR Movement
 		WPAD_IR(WPAD_CHAN_0, &ir);
-		
-		VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);	// Clears the screen completely
-		if (!settings.getBackgroundMusic())					// Music off - show a "no" button
+
+		// Initialise the console, required for printf
+		console_init(xfb[iXFB], 20, 20, rmode->fbWidth, rmode->xfbHeight, 
+			rmode->fbWidth * VI_DISPLAY_PIX_SZ);
+		//VIDEO_ClearFrameBuffer(rmode, xfb[iXFB], COLOR_BLACK);	// Clears the screen completely
+		if (!settings.getBackgroundMusic())		// Music off - show a "no" button
 		{
-			imageNo.display((rmode->viWidth - imageNo.getWidth()) >> 1, 
-			(rmode->viHeight - imageNo.getHeight()) >> 1, xfb, rmode);
+			imageNo.display(xfb[iXFB], rmode, rmode->fbWidth, rmode->xfbHeight, 
+				(rmode->fbWidth - imageNo.getWidth()) >> 1, 
+				(rmode->xfbHeight - imageNo.getHeight()) >> 1);
 
 			//if (MP3Player_IsPlaying()) MP3Player_Stop();
 			if (play.playing && !play.paused) MODPlay_Pause(&play, true);
 		}
-		else 												// Music on - show a "yes" button
+		else	// Music on - show a "yes" button
 		{
-			imageYes.display((rmode->viWidth - imageYes.getWidth()) >> 1, 
-			(rmode->viHeight - imageYes.getHeight()) >> 1, xfb, rmode);
+			imageYes.display(xfb[iXFB], rmode, rmode->fbWidth, rmode->xfbHeight,
+				(rmode->fbWidth - imageYes.getWidth()) >> 1, 
+				(rmode->xfbHeight - imageYes.getHeight()) >> 1);
 
 			//if (!MP3Player_IsPlaying()) MP3Player_PlayBuffer(sample_mp3, sample_mp3_size, nullptr);
 			if (!play.playing) MODPlay_Start(&play);
 			else if (play.paused) MODPlay_Pause(&play, false);
 		}
 		// Draw the cursor
-		if (ir.valid) DRAW_box(ir.x - 5, ir.y - 5, ir.x + 5, ir.y + 5, COLOR_WHITE, xfb, rmode);
+		if (ir.valid) 
+			DRAW_box(xfb[iXFB], rmode, rmode->fbWidth, rmode->xfbHeight, ir.x - 5, ir.y - 5, 
+				ir.x + 5, ir.y + 5, COLOR_WHITE);
 		
 		// Rumble on-off
 		if (!settings.getRumble()) WPAD_Rumble(WPAD_CHAN_0, 0);
@@ -130,6 +138,10 @@ int main(int argc, char** argv)
 			fatUnmount(0);
 			SYS_ResetSystem(HWButton, 0, 0);
 		}
+		
+		VIDEO_SetNextFramebuffer(xfb[iXFB]);
+		iXFB ^= 1;
+		VIDEO_Flush();
 
 		// Wait for the next frame
 		VIDEO_WaitVSync();
@@ -159,19 +171,17 @@ void initialise()
 
 	// Obtain the preferred video mode from the system
 	// This will correspond to the settings in the Wii menu
-	rmode = VIDEO_GetPreferredMode(NULL);
+	rmode = VIDEO_GetPreferredMode(nullptr);
 
 	// Allocate memory for the display in the uncached region
-	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
-
-	// Initialise the console, required for printf
-	console_init(xfb, 20, 20, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * VI_DISPLAY_PIX_SZ);
+	xfb[0] = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
+	xfb[1] = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
 
 	// Set up the video registers with the chosen mode
 	VIDEO_Configure(rmode);
 
 	// Tell the video hardware where our display memory is
-	VIDEO_SetNextFramebuffer(xfb);
+	VIDEO_SetNextFramebuffer(xfb[0]);
 
 	// Make the display visible
 	VIDEO_SetBlack(FALSE);
@@ -189,7 +199,7 @@ void initialise()
 	// e.g. printf ("\x1b[%d;%dH", row, column );
 	std::cout << "\x1b[2;0H";
 
-	WPAD_SetVRes(WPAD_CHAN_ALL, rmode->viWidth, rmode->viHeight);
+	WPAD_SetVRes(WPAD_CHAN_ALL, rmode->fbWidth, rmode->xfbHeight);
 	WPAD_SetDataFormat(WPAD_CHAN_ALL, WPAD_FMT_BTNS_ACC_IR);
 
 	SYS_SetPowerCallback(ISR_PowerButton);

@@ -29,7 +29,7 @@ Settings::Settings() noexcept : _bBackgroundMusic{true}, _bRumble{true} {}
  * 
  * @param sFilePath the path to the JSON file holding the settings
  */
-Settings::Settings(const std::string& sFilePath)
+Settings::Settings(const std::string& sFilePath) : _bBackgroundMusic{true}, _bRumble{true}
 {
     json_t* jsonRoot = nullptr;			// Root object of the JSON file
     json_error_t jsonerror;				// Error handler
@@ -58,11 +58,9 @@ Settings::Settings(const std::string& sFilePath)
 	/* New fields that are added to the class must be retrieved from here */
 	jsonField = json_object_get(jsonSettings, "background_music");
 	if(json_is_boolean(jsonField)) _bBackgroundMusic = json_boolean_value(jsonField);
-	else _bBackgroundMusic = true;
 	
 	jsonField = json_object_get(jsonSettings, "rumble");
 	if(json_is_boolean(jsonField)) _bRumble = json_boolean_value(jsonField);
-	else _bRumble = true;
 
 	// Free the objects from memory
     json_decref(jsonRoot);
