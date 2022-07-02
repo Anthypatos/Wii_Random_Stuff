@@ -114,8 +114,8 @@ JPEG::JPEG(const u8* pJpegBuf, u64 lJpegSize) : _iWidth{0}, _iHeight{0}, _iInSub
  * @param jpegOther the JPEG::JPEG object to be copied
  */
 JPEG::JPEG(const JPEG& jpegOther) : _iWidth{jpegOther._iWidth}, _iHeight{jpegOther._iHeight},
-	_iInSubsamp{jpegOther._iInSubsamp}, _iInColorspace{jpegOther._iInColorspace},
-	_pImgBuf{new u32[(_iWidth >> 1) * _iHeight]}
+	_iInSubsamp{jpegOther._iInSubsamp}, _iInColorspace{jpegOther._iInColorspace}, 
+	_iPosX{jpegOther._iPosX}, _iPosY{jpegOther._iPosY}, _pImgBuf{new u32[(_iWidth >> 1) * _iHeight]}
 { 
 	memcpy(_pImgBuf, jpegOther._pImgBuf, (_iWidth << 1) * _iHeight); 
 }
@@ -128,12 +128,14 @@ JPEG::JPEG(const JPEG& jpegOther) : _iWidth{jpegOther._iWidth}, _iHeight{jpegOth
  */
 JPEG::JPEG(JPEG&& jpegOther) noexcept : _iWidth{jpegOther._iWidth}, _iHeight{jpegOther._iHeight},
 	_iInSubsamp{jpegOther._iInSubsamp}, _iInColorspace{jpegOther._iInColorspace}, 
-	_pImgBuf{jpegOther._pImgBuf}
+	_iPosX{jpegOther._iPosX}, _iPosY{jpegOther._iPosY}, _pImgBuf{jpegOther._pImgBuf}
 {
 	jpegOther._iWidth = 0;
 	jpegOther._iHeight = 0;
 	jpegOther._iInSubsamp = 0;
 	jpegOther._iInColorspace = 0;
+	jpegOther._iPosX = 0;
+	jpegOther._iPosY = 0;
 	jpegOther._pImgBuf = nullptr;
 }
 
@@ -154,6 +156,8 @@ JPEG& JPEG::operator =(const JPEG& jpegOther)
 		_iHeight = jpegOther._iHeight;
 		_iInSubsamp = jpegOther._iInSubsamp;
 		_iInColorspace = jpegOther._iInColorspace;
+		_iPosX = jpegOther._iPosX;
+		_iPosY = jpegOther._iPosY;
 		_pImgBuf = new u32[(_iWidth >> 1) * _iHeight];
 
 		memcpy(_pImgBuf, jpegOther._pImgBuf, (_iWidth << 1) * _iHeight);
@@ -179,12 +183,16 @@ JPEG& JPEG::operator =(JPEG&& jpegOther) noexcept
 		_iHeight = jpegOther._iHeight;
 		_iInSubsamp = jpegOther._iInSubsamp;
 		_iInColorspace = jpegOther._iInColorspace;
+		_iPosX = jpegOther._iPosX;
+		_iPosY = jpegOther._iPosY;
 		_pImgBuf = jpegOther._pImgBuf;
 		
 		jpegOther._iWidth = 0;
 		jpegOther._iHeight = 0;
 		jpegOther._iInSubsamp = 0;
 		jpegOther._iInColorspace = 0;
+		jpegOther._iPosX = 0;
+		jpegOther._iPosY = 0;
 		jpegOther._pImgBuf = nullptr;
 	}
 
