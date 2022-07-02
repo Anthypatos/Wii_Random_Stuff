@@ -32,7 +32,8 @@ const std::string JPEG::SCasColorspaceName[] = {"RGB", "YCbCr", "GRAY", "CMYK", 
  * 
  * @param sFilePath the path to the image in the filesystem
  */
-JPEG::JPEG(const std::string& sFilePath)
+JPEG::JPEG(const std::string& sFilePath) : _iWidth{0}, _iHeight{0}, _iInSubsamp{0}, _iInColorspace{0},
+	_iPosX{0}, _iPosY{0}, _pImgBuf{nullptr}
 {
 	u8* pJpegBuf = nullptr;	// In-memory buffer for the compressed image
 	u64 lJpegSize = 0;		// Size of the image in bytes
@@ -63,7 +64,8 @@ JPEG::JPEG(const std::string& sFilePath)
  * @param pJpegBuf pointer to the buffer of the compressed image
  * @param lJpegSize the size of the image in bytes
  */
-JPEG::JPEG(const u8* pJpegBuf, u64 lJpegSize) : _iPosX{0}, _iPosY{0}
+JPEG::JPEG(const u8* pJpegBuf, u64 lJpegSize) : _iWidth{0}, _iHeight{0}, _iInSubsamp{0}, _iInColorspace{0},
+	_iPosX{0}, _iPosY{0}, _pImgBuf{nullptr}
 {
 	tjhandle tjhandle = nullptr;	// Handle instance for the decompression
 	u8* pRgbBuf = nullptr;			// Buffer for the decompressed image

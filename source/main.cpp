@@ -21,19 +21,25 @@
 #include "../build/no_jpg.h"
 #include "../build/yes_jpg.h"
 
+
 void initialise();
 void initialise_fat();
 void load_settings(const std::string& sFilePath = Settings::SCsDefaultPath);
 void die(const char* pcMsg);
 
-//-----------------------------------  ISR -----------------------------------------
-void ISR_Power() { SYS_ResetSystem(SYS_POWEROFF, 0, 0); }
-void ISR_Reset(u32 iIRQ, void* pContext) { SYS_ResetSystem(SYS_HOTRESET, 0, 0); }
 
 static void *xfb = nullptr;				// Pointer to the XFB region
 static GXRModeObj *rmode = nullptr;		// Rendermode object holding the rendering parameters
 static MODPlay play;					// Playmode object for playing sounds
 static Settings settings{};				// Global configuration object
+static vs8 HWButton = -1;
+
+
+//-----------------------------------  ISR -----------------------------------------
+void ISR_PowerButton() { HWButton = SYS_POWEROFF; }
+void ISR_WiimotePowerButton(s32 iChan) { HWButton = SYS_POWEROFF; }
+void ISR_ResetButton(u32 iIRQ, void* pContext) { HWButton = SYS_HOTRESET; }
+
 
 //----------------------------------- MAIN ----------------------------------------
 int main(int argc, char** argv)
@@ -118,6 +124,13 @@ int main(int argc, char** argv)
 			}
 		}
 
+		if (HWButton != -1)
+		{
+			if (play.playing) MODPlay_Stop(&play);
+			fatUnmount(0);
+			SYS_ResetSystem(HWButton, 0, 0);
+		}
+
 		// Wait for the next frame
 		VIDEO_WaitVSync();
 	}
@@ -179,8 +192,9 @@ void initialise()
 	WPAD_SetVRes(WPAD_CHAN_ALL, rmode->viWidth, rmode->viHeight);
 	WPAD_SetDataFormat(WPAD_CHAN_ALL, WPAD_FMT_BTNS_ACC_IR);
 
-	SYS_SetPowerCallback(ISR_Power);
-	SYS_SetResetCallback(ISR_Reset);
+	SYS_SetPowerCallback(ISR_PowerButton);
+	SYS_SetResetCallback(ISR_ResetButton);
+	WPAD_SetPowerButtonCallback(ISR_WiimotePowerButton);
 }
 
 
