@@ -21,7 +21,7 @@
 class JPEG
 {
 public:
-    static const std::string SCasSubsampName[];       /**< Strings for the different types of sumsampling */
+    static const std::string SCasSubsampName[];       /**< Strings for the different types of subsampling */
     static const std::string SCasColorspaceName[];    /**< Strings for the different types of colorspaces */
 
     /** Getters */
@@ -41,10 +41,10 @@ public:
 
     /**
      * @brief Construct a new JPEG object from an image buffer
-     * @param pJpegBuf pointer to the buffer of the compressed image
+     * @param pyJpegBuf pointer to the buffer of the compressed image
      * @param lJpegSize the size of the image in bytes
      */
-    explicit JPEG(const u8* pJpegBuf, u64 lJpegSize);
+    explicit JPEG(const u8* pyJpegBuf, u64 lJpegSize);
     
     JPEG(const JPEG& jpegOther);        /**< Copy constructor */
     JPEG(JPEG&& jpegOther) noexcept;    /**< Movement constructor */
@@ -58,15 +58,15 @@ public:
      * of the XFB depending on the given coordinates. In those cases, the image will
      * be partially displayed
      * 
-     * @param xfb a pointer to the start of the XFB region
-     * @param rmode a rendermode object holding the rendering parameters
+     * @param pXfb a pointer to the start of the XFB region
+     * @param pRmode a rendermode object holding the rendering parameters
      * @param iOriginalWidth the width of the canvas that is being drawn
      * @param iOriginalHeight the height of the canvas that is being drawn
-     * @param iX the coordinate X of the top left corner of the image on the canvas
-     * @param iY the coordinate Y of the top left corner of the image on the canvas
+     * @param fX the coordinate X of the top left corner of the image on the canvas
+     * @param fY the coordinate Y of the top left corner of the image on the canvas
      */
-    void display(void* xfb, const GXRModeObj* rmode, u32 iOriginalWidth, u32 iOriginalHeight, 
-        s32 iX, s32 iY);
+    void display(void* pXfb, const GXRModeObj* pRmode, u32 iOriginalWidth, u32 iOriginalHeight, 
+        f32 fX, f32 fY);
 
 private:
     s32 _iWidth;            /**< Width of the image in pixels */

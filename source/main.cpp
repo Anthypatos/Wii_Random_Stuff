@@ -1,7 +1,9 @@
 #include <iostream>
+#include <iomanip>
 #include <ios>
 #include <cstdlib>
 #include <string>
+#include <cmath>
 #include <dirent.h>
 #include <unistd.h>
 #include <gccore.h>
@@ -11,6 +13,7 @@
 //#include <mp3player.h>
 #include <aesndlib.h>
 #include <gcmodplay.h>
+#include "../include/utils.hpp"
 #include "../include/SETTINGS.hpp"
 #include "../include/JPEG.hpp"
 #include "../include/MACROS.hpp"
@@ -25,6 +28,7 @@
 void initialise();
 void initialise_fat();
 void load_settings(const std::string& sFilePath = Settings::SCsDefaultPath);
+void prepare_exit();
 void die(const char* pcMsg);
 
 
@@ -32,13 +36,13 @@ static void* xfb[2];					// Pointer to the XFB region
 static GXRModeObj *rmode = nullptr;		// Rendermode object holding the rendering parameters
 static MODPlay play;					// Playmode object for playing sounds
 static Settings settings{};				// Global configuration object
-static vs8 HWButton = -1;
+static vs8 yStopProgram = -1;
 
 
 //-----------------------------------  ISR -----------------------------------------
-void ISR_PowerButton() { HWButton = SYS_POWEROFF; }
-void ISR_WiimotePowerButton(s32 iChan) { HWButton = SYS_POWEROFF; }
-void ISR_ResetButton(u32 iIRQ, void* pContext) { HWButton = SYS_HOTRESET; }
+void ISR_PowerButton() { yStopProgram = SYS_POWEROFF; }
+void ISR_WiimotePowerButton(s32 iChan) { yStopProgram = SYS_POWEROFF; }
+void ISR_ResetButton(u32 iIRQ, void* pContext) { yStopProgram = SYS_HOTRESET; }
 
 
 //----------------------------------- MAIN ----------------------------------------
@@ -47,30 +51,35 @@ int main(int argc, char** argv)
 	initialise();
 	initialise_fat();
 
-	u8 iXFB = 0;
-	ir_t ir;
+	load_settings(Settings::SCsDefaultPath);
+
+	u8 yXFB = 0;
 	JPEG imageNo(no_jpg, no_jpg_size);
 	JPEG imageYes(yes_jpg, yes_jpg_size);
-	load_settings(Settings::SCsDefaultPath);
+
+	WPADData* pWPADData1 = nullptr;
+	u32 iExpansionType = WPAD_EXP_NONE;
 
 	MODPlay_SetMOD(&play, technique_mod);
 	MODPlay_SetVolume(&play, 63, 63);
 
+	//-------------------------------- Superloop ---------------------------------
 	while(true) 
 	{
-		// Call WPAD_ScanPads each loop, this reads the latest controller states
-		WPAD_ScanPads();
-		
-		// IR Movement
-		WPAD_IR(WPAD_CHAN_0, &ir);
-
 		// Initialise the console, required for printf
-		console_init(xfb[iXFB], 20, 20, rmode->fbWidth, rmode->xfbHeight, 
+		console_init(xfb[yXFB], 20, 20, rmode->fbWidth, rmode->xfbHeight, 
 			rmode->fbWidth * VI_DISPLAY_PIX_SZ);
-		//VIDEO_ClearFrameBuffer(rmode, xfb[iXFB], COLOR_BLACK);	// Clears the screen completely
+
+		// The console understands VT terminal escape codes
+		// This positions the cursor on row 2, column 0
+		// we can use variables for this with format codes too
+		// e.g. printf ("\x1b[%d;%dH", row, column );
+		std::cout << "\x1b[2;0H";
+
+		//VIDEO_ClearFrameBuffer(rmode, xfb[yXFB], COLOR_BLACK);	// Clears the screen completely
 		if (!settings.getBackgroundMusic())		// Music off - show a "no" button
 		{
-			imageNo.display(xfb[iXFB], rmode, rmode->fbWidth, rmode->xfbHeight, 
+			imageNo.display(xfb[yXFB], rmode, rmode->fbWidth, rmode->xfbHeight, 
 				(rmode->fbWidth - imageNo.getWidth()) >> 1, 
 				(rmode->xfbHeight - imageNo.getHeight()) >> 1);
 
@@ -79,7 +88,7 @@ int main(int argc, char** argv)
 		}
 		else	// Music on - show a "yes" button
 		{
-			imageYes.display(xfb[iXFB], rmode, rmode->fbWidth, rmode->xfbHeight,
+			imageYes.display(xfb[yXFB], rmode, rmode->fbWidth, rmode->xfbHeight,
 				(rmode->fbWidth - imageYes.getWidth()) >> 1, 
 				(rmode->xfbHeight - imageYes.getHeight()) >> 1);
 
@@ -87,60 +96,66 @@ int main(int argc, char** argv)
 			if (!play.playing) MODPlay_Start(&play);
 			else if (play.paused) MODPlay_Pause(&play, false);
 		}
-		// Draw the cursor
-		if (ir.valid) 
-			DRAW_box(xfb[iXFB], rmode, rmode->fbWidth, rmode->xfbHeight, ir.x - 5, ir.y - 5, 
-				ir.x + 5, ir.y + 5, COLOR_WHITE);
-		
-		// Rumble on-off
-		if (!settings.getRumble()) WPAD_Rumble(WPAD_CHAN_0, 0);
-		else WPAD_Rumble(WPAD_CHAN_0, 1);
-		
-		std::cout << "\x1b[2;0Hx = " << ir.x << " y = " << ir.y << std::endl <<
-		"Background music = " << settings.getBackgroundMusic() << " Rumble = " << settings.getRumble();
+		std::cout << "Background music = " << settings.getBackgroundMusic() << " Rumble = " << 
+			settings.getRumble() << std::endl << std::endl;
 
-		// WPAD_ButtonsDown tells us which buttons were pressed in this loop
-		// this is a "one shot" state which will not fire again until the button has been released
-		u32 iButtonsDown = WPAD_ButtonsDown(WPAD_CHAN_0);
 
-		if (iButtonsDown)
+		// Call WPAD_ScanPads each loop, this reads the latest controller states
+		WPAD_ScanPads();
+
+		if (WPAD_Probe(WPAD_CHAN_0, &iExpansionType) == WPAD_ERR_NONE)
 		{
-			// We return to the launcher application via exit
-			if (iButtonsDown & WPAD_BUTTON_HOME) 
+			pWPADData1 = WPAD_Data(WPAD_CHAN_0);
+
+			// Draw the cursor
+			/*if (pWPADData1->ir.valid) 
+				DRAW_box(xfb[yXFB], rmode, rmode->fbWidth, rmode->xfbHeight, pWPADData1->ir.x - 5, 
+					pWPADData1->ir.y - 5, pWPADData1->ir.x + 5, pWPADData1->ir.y + 5, COLOR_WHITE);*/
+
+			// Rumble on-off
+			if (!settings.getRumble()) WPAD_Rumble(WPAD_CHAN_0, 0);
+			else WPAD_Rumble(WPAD_CHAN_0, 1);
+
+			if (pWPADData1->btns_d)
 			{
-				//if (MP3Player_IsPlaying()) MP3Player_Stop();
-				if (play.playing) MODPlay_Stop(&play);
-				fatUnmount(0);
-				exit(0);
-			}
-			else if (iButtonsDown & WPAD_BUTTON_1) TOGGLE(HW_GPIOB_OUT, SLOT_LED);
-			else if (iButtonsDown & WPAD_BUTTON_2) TOGGLE(HW_GPIOB_OUT, DO_EJECT);
-			else if (iButtonsDown & WPAD_BUTTON_A && ir.valid)
-			{
-				// Change the settings and save them on disk when clicking the button
-				if ((settings.getBackgroundMusic() && ir.x >= imageYes.getPosX() && 
-					ir.x < (imageYes.getPosX() + imageYes.getWidth()) && ir.y >= imageYes.getPosY() && 
-					ir.y < (imageYes.getPosY() + imageYes.getHeight())) ||
-					(!settings.getBackgroundMusic() && ir.x >= imageNo.getPosX() && 
-					ir.x < (imageNo.getPosX() + imageNo.getWidth()) && ir.y >= imageNo.getPosY() && 
-					ir.y < (imageNo.getPosY() + imageNo.getHeight())))
+				// We return to the launcher application via exit
+				if (pWPADData1->btns_d & WPAD_BUTTON_HOME) 
 				{
-					settings.setBackgroundMusic(!settings.getBackgroundMusic());
-					settings.setRumble(!settings.getRumble());
-					settings.save(Settings::SCsDefaultPath);
+					prepare_exit();
+					exit(0);
+				}
+				else if (pWPADData1->btns_d & WPAD_BUTTON_1) TOGGLE(HW_GPIOB_OUT, SLOT_LED);
+				else if (pWPADData1->btns_d & WPAD_BUTTON_2) TOGGLE(HW_GPIOB_OUT, DO_EJECT);
+				else if (pWPADData1->btns_d & WPAD_BUTTON_A && pWPADData1->ir.valid)
+				{
+					// Change the settings and save them on disk when clicking the button
+					if ((settings.getBackgroundMusic() && pWPADData1->ir.x >= imageYes.getPosX() && 
+						pWPADData1->ir.x < imageYes.getPosX() + imageYes.getWidth() && 
+						pWPADData1->ir.y >= imageYes.getPosY() && 
+						pWPADData1->ir.y < imageYes.getPosY() + imageYes.getHeight()) ||
+						(!settings.getBackgroundMusic() && pWPADData1->ir.x >= imageNo.getPosX() && 
+						pWPADData1->ir.x < imageNo.getPosX() + imageNo.getWidth() && 
+						pWPADData1->ir.y >= imageNo.getPosY() && 
+						pWPADData1->ir.y < imageNo.getPosY() + imageNo.getHeight()))
+					{
+						settings.setBackgroundMusic(!settings.getBackgroundMusic());
+						settings.setRumble(!settings.getRumble());
+						settings.save(Settings::SCsDefaultPath);
+					}
 				}
 			}
+
+			print_wiimote_data(xfb[yXFB], rmode, pWPADData1);
 		}
 
-		if (HWButton != -1)
+		if (yStopProgram != -1)
 		{
-			if (play.playing) MODPlay_Stop(&play);
-			fatUnmount(0);
-			SYS_ResetSystem(HWButton, 0, 0);
+			prepare_exit();
+			SYS_ResetSystem(yStopProgram, 0, 0);
 		}
 		
-		VIDEO_SetNextFramebuffer(xfb[iXFB]);
-		iXFB ^= 1;
+		VIDEO_SetNextFramebuffer(xfb[yXFB]);
+		yXFB ^= 1;
 		VIDEO_Flush();
 
 		// Wait for the next frame
@@ -193,12 +208,7 @@ void initialise()
 	VIDEO_WaitVSync();
 	if(rmode->viTVMode & VI_NON_INTERLACE) VIDEO_WaitVSync();
 
-	// The console understands VT terminal escape codes
-	// This positions the cursor on row 2, column 0
-	// we can use variables for this with format codes too
-	// e.g. printf ("\x1b[%d;%dH", row, column );
-	std::cout << "\x1b[2;0H";
-
+	WPAD_SetIdleTimeout(300);
 	WPAD_SetVRes(WPAD_CHAN_ALL, rmode->fbWidth, rmode->xfbHeight);
 	WPAD_SetDataFormat(WPAD_CHAN_ALL, WPAD_FMT_BTNS_ACC_IR);
 
@@ -232,9 +242,17 @@ void initialise_fat()
  */
 void load_settings(const std::string& sFilePath)
 {
-	// Loads
 	try { settings = Settings(sFilePath); }
 	catch (std::ios_base::failure& iof) { settings.save(sFilePath); }
+}
+
+
+void prepare_exit()
+{
+	//if (MP3Player_IsPlaying()) MP3Player_Stop();
+	if (play.playing) MODPlay_Stop(&play);
+	WPAD_Shutdown();
+	fatUnmount(0);
 }
 
 
@@ -247,6 +265,7 @@ void die(const char* pcMsg)
 {
 	perror(pcMsg);
 	sleep(5);
-	fatUnmount(0);
+
+	prepare_exit();
 	exit(1);
 }

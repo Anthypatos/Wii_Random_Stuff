@@ -8,6 +8,7 @@
 				
 */
 
+#include <stdexcept>
 #include <gctypes.h>
 #include <ogc/gx_struct.h>
 #include "../include/DRAW.hpp"
@@ -16,30 +17,33 @@
 /**
  * @brief Draws a horizontal line
  * 
- * @param xfb a pointer to the start of the XFB region
- * @param rmode a rendermode object holding the rendering parameters
+ * @param pXfb a pointer to the start of the XFB region
+ * @param pRmode a rendermode object holding the rendering parameters
  * @param iOriginalWidth the width of the canvas that is being drawn
  * @param iOriginalHeight the height of the canvas that is being drawn
- * @param iX1 the left-hand coordinate X of the line
- * @param iX2 the right-hand coordinate X of the line
- * @param iY the coordinate Y of the line
+ * @param fX1 the left-hand coordinate X of the line
+ * @param fX2 the right-hand coordinate X of the line
+ * @param fY the coordinate Y of the line
  * @param iColor the color of the line
  */
-void DRAW_horizontalLine(void* xfb, const GXRModeObj* rmode, u32 iOriginalWidth, u32 iOriginalHeight, 
-	s32 iX1, s32 iX2, s32 iY, u32 iColor)
+void DRAW_horizontalLine(void* pXfb, const GXRModeObj* pRmode, u32 iOriginalWidth, u32 iOriginalHeight, 
+	f32 fX1, f32 fX2, f32 fY, u32 iColor)
 {
-	if (iY >= 0 && iY < rmode->xfbHeight)	// Check boundaries
-	{
-		// Rule of thumb to translate coordinates to the XFB
-		iX1 = iX1 * (rmode->fbWidth >> 1) / iOriginalWidth;
-		iX2 = iX2 * (rmode->fbWidth >> 1) / iOriginalWidth;
-		iY = iY * rmode->xfbHeight / iOriginalHeight;
+	if (iOriginalWidth <= 0 || iOriginalHeight <= 0) throw std::domain_error("Invalid dimensions");
 
+	// Rule of thumb to translate coordinates to the XFB
+	s32 iX1 = fX1 * (pRmode->fbWidth >> 1) / iOriginalWidth;
+	s32 iX2 = fX2 * (pRmode->fbWidth >> 1) / iOriginalWidth;
+	s32 iY = fY * pRmode->xfbHeight / iOriginalHeight;
+
+	if (iY >= 0 && iY < pRmode->xfbHeight)	// Check boundaries
+	{
 		// Draws the points that are inside the XFB
 		if (iX1 < 0) iX1 = 0;
-		if (iX2 >= (rmode->fbWidth >> 1)) iX2 = (rmode->fbWidth >> 1) - 1;
+		if (iX2 >= (pRmode->fbWidth >> 1)) iX2 = (pRmode->fbWidth >> 1) - 1;
+		u32* pFrameBuffer = static_cast<u32*>(pXfb);
 
-		for (s32 i = iX1; i <= iX2; i++) static_cast<u32*>(xfb)[iY * (rmode->fbWidth >> 1) + i] = iColor;
+		for (s32 i = iX1; i <= iX2; i++) pFrameBuffer[iY * (pRmode->fbWidth >> 1) + i] = iColor;
 	}
 }
 
@@ -47,30 +51,33 @@ void DRAW_horizontalLine(void* xfb, const GXRModeObj* rmode, u32 iOriginalWidth,
 /**
  * @brief Draws a vertical line
  * 
- * @param xfb a pointer to the start of the XFB region
- * @param rmode a rendermode object holding the rendering parameters
+ * @param pXfb a pointer to the start of the XFB region
+ * @param pRmode a rendermode object holding the rendering parameters
  * @param iOriginalWidth the width of the canvas that is being drawn
  * @param iOriginalHeight the height of the canvas that is being drawn
- * @param iX the coordinate X of the line
- * @param iY1 the upper coordinate Y of the line
- * @param iY2 the lower coordinate Y of the line
+ * @param fX the coordinate X of the line
+ * @param fY1 the upper coordinate Y of the line
+ * @param fY2 the lower coordinate Y of the line
  * @param iColor the color of the line
  */
-void DRAW_verticalLine(void* xfb, const GXRModeObj* rmode, u32 iOriginalWidth, u32 iOriginalHeight,
-	s32 iX, s32 iY1, s32 iY2, u32 iColor)
+void DRAW_verticalLine(void* pXfb, const GXRModeObj* pRmode, u32 iOriginalWidth, u32 iOriginalHeight,
+	f32 fX, f32 fY1, f32 fY2, u32 iColor)
 {
-	if (iX >= 0 && iX < rmode->fbWidth)		// Check boundaries
-	{
-		// Rule of thumb to translate coordinates to the XFB
-		iX = iX * (rmode->fbWidth >> 1) / iOriginalWidth;
-		iY1 = iY1 * rmode->xfbHeight / iOriginalHeight;
-		iY2 = iY2 * rmode->xfbHeight / iOriginalHeight;
+	if (iOriginalWidth <= 0 || iOriginalHeight <= 0) throw std::domain_error("Invalid dimensions");
+	
+	// Rule of thumb to translate coordinates to the XFB
+	s32 iX = fX * (pRmode->fbWidth >> 1) / iOriginalWidth;
+	s32 iY1 = fY1 * pRmode->xfbHeight / iOriginalHeight;
+	s32 iY2 = fY2 * pRmode->xfbHeight / iOriginalHeight;
 
+	if (iX >= 0 && iX < pRmode->fbWidth)	// Check boundaries
+	{
 		// Draws the points that are inside the XFB
 		if (iY1 < 0) iY1 = 0;
-		if (iY2 >= rmode->xfbHeight) iY2 = rmode->xfbHeight - 1;
+		if (iY2 >= pRmode->xfbHeight) iY2 = pRmode->xfbHeight - 1;
+		u32* pFrameBuffer = static_cast<u32*>(pXfb);
 
-		for (s32 i = iY1; i <= iY2; i++) static_cast<u32*>(xfb)[i * (rmode->fbWidth >> 1) + iX] = iColor;
+		for (s32 i = iY1; i <= iY2; i++) pFrameBuffer[i * (pRmode->fbWidth >> 1) + iX] = iColor;
 	}
 }
 
@@ -78,42 +85,42 @@ void DRAW_verticalLine(void* xfb, const GXRModeObj* rmode, u32 iOriginalWidth, u
 /**
  * @brief Draws an empty square
  * 
- * @param xfb a pointer to the start of the XFB region
- * @param rmode a rendermode object holding the rendering parameters
+ * @param pXfb a pointer to the start of the XFB region
+ * @param pRmode a rendermode object holding the rendering parameters
  * @param iOriginalWidth the width of the canvas that is being drawn
  * @param iOriginalHeight the height of the canvas that is being drawn
- * @param iX1 the coordinate X of the top left corner of the square
- * @param iY1 the coordinate Y of the top left corner of the square
- * @param iX2 the coordinate X of the top right corner of the square
- * @param iY2 the coordinate Y of the bottom left corner of the square
+ * @param fX1 the coordinate X of the top left corner of the square
+ * @param fY1 the coordinate Y of the top left corner of the square
+ * @param fX2 the coordinate X of the top right corner of the square
+ * @param fY2 the coordinate Y of the bottom left corner of the square
  * @param iColor the color of the square's edges
  */
-void DRAW_box(void* xfb, const GXRModeObj* rmode, u32 iOriginalWidth, u32 iOriginalHeight,
-	s32 iX1, s32 iY1, s32 iX2, s32 iY2, u32 iColor)
+void DRAW_box(void* pXfb, const GXRModeObj* pRmode, u32 iOriginalWidth, u32 iOriginalHeight,
+	f32 fX1, f32 fY1, f32 fX2, f32 fY2, u32 iColor)
 {
-	DRAW_horizontalLine(xfb, rmode, iOriginalWidth, iOriginalHeight, iX1, iX2, iY1, iColor);
-	DRAW_horizontalLine(xfb, rmode, iOriginalWidth, iOriginalHeight, iX1, iX2, iY2, iColor);
-	DRAW_verticalLine(xfb, rmode, iOriginalWidth, iOriginalHeight, iX1, iY1, iY2, iColor);
-	DRAW_verticalLine(xfb, rmode, iOriginalWidth, iOriginalHeight, iX2, iY1, iY2, iColor);
+	DRAW_horizontalLine(pXfb, pRmode, iOriginalWidth, iOriginalHeight, fX1, fX2, fY1, iColor);
+	DRAW_horizontalLine(pXfb, pRmode, iOriginalWidth, iOriginalHeight, fX1, fX2, fY2, iColor);
+	DRAW_verticalLine(pXfb, pRmode, iOriginalWidth, iOriginalHeight, fX1, fY1, fY2, iColor);
+	DRAW_verticalLine(pXfb, pRmode, iOriginalWidth, iOriginalHeight, fX2, fY1, fY2, iColor);
 }
 
 
 /**
  * @brief Draws a filled square
  * 
- * @param xfb a pointer to the start of the XFB region
- * @param rmode a rendermode object holding the rendering parameters
+ * @param pXfb a pointer to the start of the XFB region
+ * @param pRmode a rendermode object holding the rendering parameters
  * @param iOriginalWidth the width of the canvas that is being drawn
  * @param iOriginalHeight the height of the canvas that is being drawn
- * @param iX1 the coordinate X of the top left corner of the square
- * @param iY1 the coordinate Y of the top left corner of the square
- * @param iX2 the coordinate X of the top right corner of the square
- * @param iY2 the coordinate Y of the bottom left corner of the square
+ * @param fX1 the coordinate X of the top left corner of the square
+ * @param fY1 the coordinate Y of the top left corner of the square
+ * @param fX2 the coordinate X of the top right corner of the square
+ * @param fY2 the coordinate Y of the bottom left corner of the square
  * @param iColor the color of the square's edges
  */
-void DRAW_dot(void* xfb, const GXRModeObj* rmode, u32 iOriginalWidth, u32 iOriginalHeight,
-	s32 iX1, s32 iY1, s32 iX2, s32 iY2, u32 iColor)
+void DRAW_dot(void* pXfb, const GXRModeObj* pRmode, u32 iOriginalWidth, u32 iOriginalHeight,
+	f32 fX1, f32 fY1, f32 fX2, f32 fY2, u32 iColor)
 {
-	for (s16 i = iY1; i < iY2; i++)
-		DRAW_horizontalLine(xfb, rmode, iOriginalWidth, iOriginalHeight, iX1, iX2, i, iColor);
+	for (f32 i = fY1; i <= fY2; i++)
+		DRAW_horizontalLine(pXfb, pRmode, iOriginalWidth, iOriginalHeight, fX1, fX2, i, iColor);
 }
