@@ -25,7 +25,8 @@ INCLUDES	:=	include
 # options for code generation
 #---------------------------------------------------------------------------------
 
-CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE)
+CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE) `freetype-config --cflags` `sdl-config --cflags` \
+			`$(PREFIX)pkg-config libturbojpeg jansson --cflags`
 CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
@@ -33,7 +34,9 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	-lwiiuse -lbte -ljansson -lmodplay -laesnd -lfat -logc -lturbojpeg -lm
+LIBS	:=	`freetype-config --libs` `sdl-config --libs` \
+			`$(PREFIX)pkg-config libturbojpeg jansson --libs` \
+			-lwiiuse -lbte -lmodplay -laesnd -lfat -logc -lm
 # For MP3s: -lmad -lasnd
 
 #---------------------------------------------------------------------------------

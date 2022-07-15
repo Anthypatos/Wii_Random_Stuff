@@ -21,22 +21,17 @@
 #include <ogc/gx_struct.h>
 #include "../include/JPEG.hpp"
 
-/** Strings for the different types of subsampling */
-const std::string JPEG::SCasSubsampName[] = {"4:4:4", "4:2:2", "4:2:0", "Grayscale", "4:4:0", "4:1:1"};
-/** Strings for the different types of colorspaces */
-const std::string JPEG::SCasColorspaceName[] = {"RGB", "YCbCr", "GRAY", "CMYK", "YCCK"};
-
 
 /**
  * @brief Construct a new JPEG object from a file in the filesystem
  * 
  * @param sFilePath the path to the image in the filesystem
  */
-JPEG::JPEG(const std::string& sFilePath) : _iWidth{0}, _iHeight{0}, _iInSubsamp{0}, _iInColorspace{0},
-	_iPosX{0}, _iPosY{0}, _pImgBuf{nullptr}
+JPEG::JPEG(const std::string& sFilePath) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _iPosY{0}, 
+	_pImgBuf{nullptr}
 {
 	u8* pyJpegBuf = nullptr;	// In-memory buffer for the compressed image
-	u64 lJpegSize = 0;		// Size of the image in bytes
+	u64 lJpegSize = 0;			// Size of the image in bytes
 
 	/* Read the JPEG file into memory. */
 	std::ifstream fileJpeg(sFilePath, std::ios_base::in | std::ios_base::binary | std::ios_base::ate);
@@ -64,17 +59,19 @@ JPEG::JPEG(const std::string& sFilePath) : _iWidth{0}, _iHeight{0}, _iInSubsamp{
  * @param pyJpegBuf pointer to the buffer of the compressed image
  * @param lJpegSize the size of the image in bytes
  */
-JPEG::JPEG(const u8* pyJpegBuf, u64 lJpegSize) : _iWidth{0}, _iHeight{0}, _iInSubsamp{0}, _iInColorspace{0},
-	_iPosX{0}, _iPosY{0}, _pImgBuf{nullptr}
+JPEG::JPEG(const u8* pyJpegBuf, u64 lJpegSize) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _iPosY{0}, 
+	_pImgBuf{nullptr}
 {
 	tjhandle tjhandle = nullptr;	// Handle instance for the decompression
 	u8* pyRgbBuf = nullptr;			// Buffer for the decompressed image
+	s32 iInSubsamp = 0;
+	s32 iInColorspace = 0;
 
 	if ((tjhandle = tjInitDecompress()) == nullptr) 
 		throw std::runtime_error("Error initializing decompressor");
 
-	if (tjDecompressHeader3(tjhandle, pyJpegBuf, lJpegSize, &_iWidth, &_iHeight, &_iInSubsamp, 
-		&_iInColorspace) < 0) throw std::runtime_error("Error reading JPEG header");
+	if (tjDecompressHeader3(tjhandle, pyJpegBuf, lJpegSize, &_iWidth, &_iHeight, &iInSubsamp, 
+		&iInColorspace) < 0) throw std::runtime_error("Error reading JPEG header");
 
 	if ((pyRgbBuf = tjAlloc(_iWidth * _iHeight * tjPixelSize[TJPF_RGB])) == nullptr)
 		throw std::bad_alloc();
@@ -114,11 +111,8 @@ JPEG::JPEG(const u8* pyJpegBuf, u64 lJpegSize) : _iWidth{0}, _iHeight{0}, _iInSu
  * @param jpegOther the JPEG::JPEG object to be copied
  */
 JPEG::JPEG(const JPEG& jpegOther) : _iWidth{jpegOther._iWidth}, _iHeight{jpegOther._iHeight},
-	_iInSubsamp{jpegOther._iInSubsamp}, _iInColorspace{jpegOther._iInColorspace}, 
 	_iPosX{jpegOther._iPosX}, _iPosY{jpegOther._iPosY}, _pImgBuf{new u32[(_iWidth >> 1) * _iHeight]}
-{ 
-	memcpy(_pImgBuf, jpegOther._pImgBuf, (_iWidth << 1) * _iHeight); 
-}
+{ memcpy(_pImgBuf, jpegOther._pImgBuf, (_iWidth << 1) * _iHeight); }
 
 
 /**
@@ -127,13 +121,10 @@ JPEG::JPEG(const JPEG& jpegOther) : _iWidth{jpegOther._iWidth}, _iHeight{jpegOth
  * @param jpegOther the JPEG::JPEG object to be moved
  */
 JPEG::JPEG(JPEG&& jpegOther) noexcept : _iWidth{jpegOther._iWidth}, _iHeight{jpegOther._iHeight},
-	_iInSubsamp{jpegOther._iInSubsamp}, _iInColorspace{jpegOther._iInColorspace}, 
 	_iPosX{jpegOther._iPosX}, _iPosY{jpegOther._iPosY}, _pImgBuf{jpegOther._pImgBuf}
 {
 	jpegOther._iWidth = 0;
 	jpegOther._iHeight = 0;
-	jpegOther._iInSubsamp = 0;
-	jpegOther._iInColorspace = 0;
 	jpegOther._iPosX = 0;
 	jpegOther._iPosY = 0;
 	jpegOther._pImgBuf = nullptr;
@@ -154,8 +145,6 @@ JPEG& JPEG::operator =(const JPEG& jpegOther)
 
 		_iWidth = jpegOther._iWidth;
 		_iHeight = jpegOther._iHeight;
-		_iInSubsamp = jpegOther._iInSubsamp;
-		_iInColorspace = jpegOther._iInColorspace;
 		_iPosX = jpegOther._iPosX;
 		_iPosY = jpegOther._iPosY;
 		_pImgBuf = new u32[(_iWidth >> 1) * _iHeight];
@@ -181,16 +170,12 @@ JPEG& JPEG::operator =(JPEG&& jpegOther) noexcept
 
 		_iWidth = jpegOther._iWidth;
 		_iHeight = jpegOther._iHeight;
-		_iInSubsamp = jpegOther._iInSubsamp;
-		_iInColorspace = jpegOther._iInColorspace;
 		_iPosX = jpegOther._iPosX;
 		_iPosY = jpegOther._iPosY;
 		_pImgBuf = jpegOther._pImgBuf;
 		
 		jpegOther._iWidth = 0;
 		jpegOther._iHeight = 0;
-		jpegOther._iInSubsamp = 0;
-		jpegOther._iInColorspace = 0;
 		jpegOther._iPosX = 0;
 		jpegOther._iPosY = 0;
 		jpegOther._pImgBuf = nullptr;
@@ -216,24 +201,24 @@ JPEG::~JPEG() noexcept
  * be partially displayed
  * 
  * @param pXfb a pointer to the start of the XFB region
- * @param pRmode a rendermode object holding the rendering parameters
- * @param iOriginalWidth the width of the canvas that is being drawn
- * @param iOriginalHeight the height of the canvas that is being drawn
+ * @param pGXRmode a rendermode object holding the rendering parameters
+ * @param fOriginalWidth the width of the canvas that is being drawn
+ * @param fOriginalHeight the height of the canvas that is being drawn
  * @param fX the coordinate X of the top left corner of the image on the canvas
  * @param fY the coordinate Y of the top left corner of the image on the canvas
  */
-void JPEG::display(void* pXfb, const GXRModeObj* pRmode, u32 iOriginalWidth, u32 iOriginalHeight, 
+void JPEG::display(void* pXfb, const GXRModeObj* pGXRmode, f32 fOriginalWidth, f32 fOriginalHeight, 
 	f32 fX, f32 fY)
 {
-	if (iOriginalWidth <= 0 || iOriginalHeight <= 0) throw std::domain_error("Invalid dimensions");
+	if (fOriginalWidth <= 0 || fOriginalHeight <= 0) throw std::domain_error("Invalid dimensions");
 
 	// Store the given positions
 	_iPosX = fX;
 	_iPosY = fY;
 
 	// Rule of thumb to translate coordinates to the XFB
-	s32 iX = fX * (pRmode->fbWidth >> 1) / iOriginalWidth;
-	s32 iY = fY * pRmode->xfbHeight / iOriginalHeight;
+	s32 iX = static_cast<s32>(fX * (pGXRmode->fbWidth >> 1) / fOriginalWidth);
+	s32 iY = static_cast<s32>(fY * pGXRmode->xfbHeight / fOriginalHeight);
 
 	u32* pFrameBuffer = static_cast<u32*>(pXfb);
 	bool bStop = false;	// Stop flag for the copy process
@@ -242,20 +227,21 @@ void JPEG::display(void* pXfb, const GXRModeObj* pRmode, u32 iOriginalWidth, u32
 	for (u16 i = 0; i < _iHeight && !bStop; i++)	// For every scanline that is needed
 	{
 		if (iY + i < 0) i += (-iY - 1);	// If the first scanline is before the start of the XFB, jump to the first valid scanline
-		else if (iY + i >= pRmode->xfbHeight) bStop = true;	// Stop if we reach the end of the XFB
+		else if (iY + i >= pGXRmode->xfbHeight) bStop = true;	// Stop if we reach the end of the XFB
 		else
 		{
 			if (iX < 0)	// If the X coordinate is to the left of the XFB copy the relevant part into it
-				memcpy(pFrameBuffer + (iY + i) * (pRmode->fbWidth >> 1), 
+				memcpy(pFrameBuffer + (iY + i) * (pGXRmode->fbWidth >> 1), 
 					_pImgBuf + i * (_iWidth >> 1) + (-iX), 
-					std::min(((_iWidth >> 1) + iX) << 2, pRmode->fbWidth << 1));
-			else if (iX < pRmode->fbWidth)	// If the X coordinate is inside the XFB copy the relevant part into it
-				memcpy(pFrameBuffer + (iY + i) * (pRmode->fbWidth >> 1) + iX, 
+					std::min(((_iWidth >> 1) + iX) << 2, pGXRmode->fbWidth << 1));
+			else if (iX < pGXRmode->fbWidth)	// If the X coordinate is inside the XFB copy the relevant part into it
+				memcpy(pFrameBuffer + (iY + i) * (pGXRmode->fbWidth >> 1) + iX, 
 					_pImgBuf + i * (_iWidth >> 1), 
-					std::min(_iWidth << 1, ((pRmode->fbWidth >> 1) - iX) << 2));
+					std::min(_iWidth << 1, ((pGXRmode->fbWidth >> 1) - iX) << 2));
 		}
 	}
 }
+
 
 /**
  * @brief Convert two RGB pixels to one Y1CbY2Cr

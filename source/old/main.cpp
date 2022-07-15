@@ -13,7 +13,7 @@
 //#include <mp3player.h>
 #include <aesndlib.h>
 #include <gcmodplay.h>
-#include "../include/utils.hpp"
+#include "../include/util.hpp"
 #include "../include/SETTINGS.hpp"
 #include "../include/JPEG.hpp"
 #include "../include/MACROS.hpp"
@@ -32,17 +32,32 @@ void prepare_exit();
 void die(const char* pcMsg);
 
 
-static void* xfb[2];					// Pointer to the XFB region
-static GXRModeObj *rmode = nullptr;		// Rendermode object holding the rendering parameters
-static MODPlay play;					// Playmode object for playing sounds
-static Settings settings{};				// Global configuration object
-static vs8 yStopProgram = -1;
+static void* SapXfb[2];					// Pointer to the XFB region
+static GXRModeObj* SpGXRmode = nullptr;		// Rendermode object holding the rendering parameters
+static MODPlay SMODPlay;					// Playmode object for playing sounds
+static Settings Ssettings{};				// Global configuration object
 
 
 //-----------------------------------  ISR -----------------------------------------
-void ISR_PowerButton() { yStopProgram = SYS_POWEROFF; }
-void ISR_WiimotePowerButton(s32 iChan) { yStopProgram = SYS_POWEROFF; }
-void ISR_ResetButton(u32 iIRQ, void* pContext) { yStopProgram = SYS_HOTRESET; }
+void ISR_PowerButton() 
+{
+	prepare_exit();
+	SYS_ResetSystem(SYS_POWEROFF, 0, 0);
+}
+
+
+void ISR_WiimotePowerButton(s32 iChan)
+{
+	prepare_exit();
+	SYS_ResetSystem(SYS_POWEROFF, 0, 0);
+}
+
+
+void ISR_ResetButton(u32 iIRQ, void* pContext)
+{
+	prepare_exit();
+	SYS_ResetSystem(SYS_HOTRESET, 0, 0);
+}
 
 
 //----------------------------------- MAIN ----------------------------------------
@@ -60,15 +75,15 @@ int main(int argc, char** argv)
 	WPADData* pWPADData1 = nullptr;
 	u32 iExpansionType = WPAD_EXP_NONE;
 
-	MODPlay_SetMOD(&play, technique_mod);
-	MODPlay_SetVolume(&play, 63, 63);
+	MODPlay_SetMOD(&SMODPlay, technique_mod);
+	MODPlay_SetVolume(&SMODPlay, 63, 63);
 
 	//-------------------------------- Superloop ---------------------------------
 	while(true) 
 	{
 		// Initialise the console, required for printf
-		console_init(xfb[yXFB], 20, 20, rmode->fbWidth, rmode->xfbHeight, 
-			rmode->fbWidth * VI_DISPLAY_PIX_SZ);
+		CON_Init(SapXfb[yXFB], 20, 20, SpGXRmode->fbWidth, SpGXRmode->xfbHeight, 
+			SpGXRmode->fbWidth * VI_DISPLAY_PIX_SZ);
 
 		// The console understands VT terminal escape codes
 		// This positions the cursor on row 2, column 0
@@ -76,28 +91,28 @@ int main(int argc, char** argv)
 		// e.g. printf ("\x1b[%d;%dH", row, column );
 		std::cout << "\x1b[2;0H";
 
-		//VIDEO_ClearFrameBuffer(rmode, xfb[yXFB], COLOR_BLACK);	// Clears the screen completely
-		if (!settings.getBackgroundMusic())		// Music off - show a "no" button
+		//VIDEO_ClearFrameBuffer(SpGXRmode, SapXfb[yXFB], COLOR_BLACK);	// Clears the screen completely
+		if (!Ssettings.getBackgroundMusic())		// Music off - show a "no" button
 		{
-			imageNo.display(xfb[yXFB], rmode, rmode->fbWidth, rmode->xfbHeight, 
-				(rmode->fbWidth - imageNo.getWidth()) >> 1, 
-				(rmode->xfbHeight - imageNo.getHeight()) >> 1);
+			imageNo.display(SapXfb[yXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight, 
+				(SpGXRmode->fbWidth - imageNo.getWidth()) >> 1, 
+				(SpGXRmode->xfbHeight - imageNo.getHeight()) >> 1);
 
 			//if (MP3Player_IsPlaying()) MP3Player_Stop();
-			if (play.playing && !play.paused) MODPlay_Pause(&play, true);
+			if (SMODPlay.playing && !SMODPlay.paused) MODPlay_Pause(&SMODPlay, true);
 		}
 		else	// Music on - show a "yes" button
 		{
-			imageYes.display(xfb[yXFB], rmode, rmode->fbWidth, rmode->xfbHeight,
-				(rmode->fbWidth - imageYes.getWidth()) >> 1, 
-				(rmode->xfbHeight - imageYes.getHeight()) >> 1);
+			imageYes.display(SapXfb[yXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight,
+				(SpGXRmode->fbWidth - imageYes.getWidth()) >> 1, 
+				(SpGXRmode->xfbHeight - imageYes.getHeight()) >> 1);
 
 			//if (!MP3Player_IsPlaying()) MP3Player_PlayBuffer(sample_mp3, sample_mp3_size, nullptr);
-			if (!play.playing) MODPlay_Start(&play);
-			else if (play.paused) MODPlay_Pause(&play, false);
+			if (!SMODPlay.playing) MODPlay_Start(&SMODPlay);
+			else if (SMODPlay.paused) MODPlay_Pause(&SMODPlay, false);
 		}
-		std::cout << "Background music = " << settings.getBackgroundMusic() << " Rumble = " << 
-			settings.getRumble() << std::endl << std::endl;
+		std::cout << "Background music = " << Ssettings.getBackgroundMusic() << " Rumble = " << 
+			Ssettings.getRumble() << std::endl << std::endl;
 
 
 		// Call WPAD_ScanPads each loop, this reads the latest controller states
@@ -109,11 +124,11 @@ int main(int argc, char** argv)
 
 			// Draw the cursor
 			/*if (pWPADData1->ir.valid) 
-				DRAW_box(xfb[yXFB], rmode, rmode->fbWidth, rmode->xfbHeight, pWPADData1->ir.x - 5, 
+				DRAW_box(SapXfb[yXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight, pWPADData1->ir.x - 5, 
 					pWPADData1->ir.y - 5, pWPADData1->ir.x + 5, pWPADData1->ir.y + 5, COLOR_WHITE);*/
 
 			// Rumble on-off
-			if (!settings.getRumble()) WPAD_Rumble(WPAD_CHAN_0, 0);
+			if (!Ssettings.getRumble()) WPAD_Rumble(WPAD_CHAN_0, 0);
 			else WPAD_Rumble(WPAD_CHAN_0, 1);
 
 			if (pWPADData1->btns_d)
@@ -129,40 +144,32 @@ int main(int argc, char** argv)
 				else if (pWPADData1->btns_d & WPAD_BUTTON_A && pWPADData1->ir.valid)
 				{
 					// Change the settings and save them on disk when clicking the button
-					if ((settings.getBackgroundMusic() && pWPADData1->ir.x >= imageYes.getPosX() && 
+					if ((Ssettings.getBackgroundMusic() && pWPADData1->ir.x >= imageYes.getPosX() && 
 						pWPADData1->ir.x < imageYes.getPosX() + imageYes.getWidth() && 
 						pWPADData1->ir.y >= imageYes.getPosY() && 
 						pWPADData1->ir.y < imageYes.getPosY() + imageYes.getHeight()) ||
-						(!settings.getBackgroundMusic() && pWPADData1->ir.x >= imageNo.getPosX() && 
+						(!Ssettings.getBackgroundMusic() && pWPADData1->ir.x >= imageNo.getPosX() && 
 						pWPADData1->ir.x < imageNo.getPosX() + imageNo.getWidth() && 
 						pWPADData1->ir.y >= imageNo.getPosY() && 
 						pWPADData1->ir.y < imageNo.getPosY() + imageNo.getHeight()))
 					{
-						settings.setBackgroundMusic(!settings.getBackgroundMusic());
-						settings.setRumble(!settings.getRumble());
-						settings.save(Settings::SCsDefaultPath);
+						Ssettings.setBackgroundMusic(!Ssettings.getBackgroundMusic());
+						Ssettings.setRumble(!Ssettings.getRumble());
+						Ssettings.save(Settings::SCsDefaultPath);
 					}
 				}
 			}
 
-			print_wiimote_data(xfb[yXFB], rmode, pWPADData1);
-		}
-
-		if (yStopProgram != -1)
-		{
-			prepare_exit();
-			SYS_ResetSystem(yStopProgram, 0, 0);
+			print_wiimote_data(SapXfb[yXFB], SpGXRmode, pWPADData1);
 		}
 		
-		VIDEO_SetNextFramebuffer(xfb[yXFB]);
+		VIDEO_SetNextFramebuffer(SapXfb[yXFB]);
 		yXFB ^= 1;
 		VIDEO_Flush();
 
 		// Wait for the next frame
 		VIDEO_WaitVSync();
 	}
-
-	return 0;
 }
 
 
@@ -182,21 +189,21 @@ void initialise()
 	//ASND_Init();
 	//MP3Player_Init();
 	AESND_Init();
-	MODPlay_Init(&play);
+	MODPlay_Init(&SMODPlay);
 
 	// Obtain the preferred video mode from the system
 	// This will correspond to the settings in the Wii menu
-	rmode = VIDEO_GetPreferredMode(nullptr);
+	SpGXRmode = VIDEO_GetPreferredMode(nullptr);
 
 	// Allocate memory for the display in the uncached region
-	xfb[0] = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
-	xfb[1] = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
+	SapXfb[0] = MEM_K0_TO_K1(SYS_AllocateFramebuffer(SpGXRmode));
+	SapXfb[1] = MEM_K0_TO_K1(SYS_AllocateFramebuffer(SpGXRmode));
 
 	// Set up the video registers with the chosen mode
-	VIDEO_Configure(rmode);
+	VIDEO_Configure(SpGXRmode);
 
 	// Tell the video hardware where our display memory is
-	VIDEO_SetNextFramebuffer(xfb[0]);
+	VIDEO_SetNextFramebuffer(SapXfb[0]);
 
 	// Make the display visible
 	VIDEO_SetBlack(FALSE);
@@ -206,10 +213,10 @@ void initialise()
 
 	// Wait for Video setup to complete
 	VIDEO_WaitVSync();
-	if(rmode->viTVMode & VI_NON_INTERLACE) VIDEO_WaitVSync();
+	if(SpGXRmode->viTVMode & VI_NON_INTERLACE) VIDEO_WaitVSync();
 
 	WPAD_SetIdleTimeout(300);
-	WPAD_SetVRes(WPAD_CHAN_ALL, rmode->fbWidth, rmode->xfbHeight);
+	WPAD_SetVRes(WPAD_CHAN_ALL, SpGXRmode->fbWidth, SpGXRmode->xfbHeight);
 	WPAD_SetDataFormat(WPAD_CHAN_ALL, WPAD_FMT_BTNS_ACC_IR);
 
 	SYS_SetPowerCallback(ISR_PowerButton);
@@ -242,15 +249,15 @@ void initialise_fat()
  */
 void load_settings(const std::string& sFilePath)
 {
-	try { settings = Settings(sFilePath); }
-	catch (std::ios_base::failure& iof) { settings.save(sFilePath); }
+	try { Ssettings = Settings(sFilePath); }
+	catch (std::ios_base::failure& iof) { Ssettings.save(sFilePath); }
 }
 
 
 void prepare_exit()
 {
 	//if (MP3Player_IsPlaying()) MP3Player_Stop();
-	if (play.playing) MODPlay_Stop(&play);
+	if (SMODPlay.playing) MODPlay_Stop(&SMODPlay);
 	WPAD_Shutdown();
 	fatUnmount(0);
 }

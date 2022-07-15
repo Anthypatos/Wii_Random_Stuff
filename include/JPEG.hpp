@@ -21,17 +21,12 @@
 class JPEG
 {
 public:
-    static const std::string SCasSubsampName[];       /**< Strings for the different types of subsampling */
-    static const std::string SCasColorspaceName[];    /**< Strings for the different types of colorspaces */
-
     /** Getters */
-    const u32* getImgBuf() const noexcept;
     s32 getWidth() const noexcept;
     s32 getHeight() const noexcept;
-    s32 getInSubsamp() const noexcept;
-    s32 getInColorspace() const noexcept;
     s32 getPosX() const noexcept;
     s32 getPosY() const noexcept;
+    const u32* getImgBuf() const noexcept;
 
     /**
      * @brief Construct a new JPEG object from a file in the filesystem
@@ -59,20 +54,18 @@ public:
      * be partially displayed
      * 
      * @param pXfb a pointer to the start of the XFB region
-     * @param pRmode a rendermode object holding the rendering parameters
-     * @param iOriginalWidth the width of the canvas that is being drawn
-     * @param iOriginalHeight the height of the canvas that is being drawn
+     * @param pGXRmode a rendermode object holding the rendering parameters
+     * @param fOriginalWidth the width of the canvas that is being drawn
+     * @param fOriginalHeight the height of the canvas that is being drawn
      * @param fX the coordinate X of the top left corner of the image on the canvas
      * @param fY the coordinate Y of the top left corner of the image on the canvas
      */
-    void display(void* pXfb, const GXRModeObj* pRmode, u32 iOriginalWidth, u32 iOriginalHeight, 
+    void display(void* pXfb, const GXRModeObj* pGXRmode, f32 fOriginalWidth, f32 fOriginalHeight, 
         f32 fX, f32 fY);
 
 private:
     s32 _iWidth;            /**< Width of the image in pixels */
     s32 _iHeight;           /**< Height of the image in pixels */
-    s32 _iInSubsamp;        /**< Index that represents the subsampling of the image */
-    s32 _iInColorspace;     /**< Index that represents the colorspace of the image */
     s32 _iPosX;             /**< Coordinate X for the top left corner of the displayed image on the canvas*/
     s32 _iPosY;             /**< Coordinate Y for the top left corner of the displayed image on the canvas*/
     u32* _pImgBuf;          /**< Image buffer in Y1CbY2Cr values */
@@ -81,8 +74,6 @@ private:
 };
 inline s32 JPEG::getWidth() const noexcept { return _iWidth; }
 inline s32 JPEG::getHeight() const noexcept { return _iHeight; }
-inline s32 JPEG::getInSubsamp() const noexcept { return _iInSubsamp; }
-inline s32 JPEG::getInColorspace() const noexcept { return _iInColorspace; }
 inline s32 JPEG::getPosX() const noexcept { return _iPosX; }
 inline s32 JPEG::getPosY() const noexcept { return _iPosY; }
 inline const u32* JPEG::getImgBuf() const noexcept { return _pImgBuf; }
