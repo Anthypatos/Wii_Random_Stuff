@@ -1,12 +1,13 @@
 This test project shows tests of different features of the Nintendo Wii.
 Currently it provides code for:
  - Video
- - Controller input, including IR and rumble
+ - Controller input, including motion controls, IR and rumble
  - Displaying pictures and working with the XFB
  - Playing non-3D audio
  - Using JSON to store and use settings
  - Some form of rudimentary user interface
  - Using GPIOs and interrupts
+ - SDL-wii
  
 This will (hopefully) be expanded in the future.
 
@@ -15,6 +16,7 @@ As of the date of writing this document, this project has been done using [devki
 Additionally, you will need the following packets:
  - ppc-libjpeg
  - ppc-jansson
+ - wii-sdl-libs
  
 You can get those using [devkitPro pacman](https://devkitpro.org/wiki/devkitPro_pacman). Simply run:
 
