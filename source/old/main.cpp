@@ -46,14 +46,14 @@ void ISR_PowerButton()
 }
 
 
-void ISR_WiimotePowerButton(s32 iChan)
+void ISR_WiimotePowerButton(int32_t iChan)
 {
 	prepare_exit();
 	SYS_ResetSystem(SYS_POWEROFF, 0, 0);
 }
 
 
-void ISR_ResetButton(u32 iIRQ, void* pContext)
+void ISR_ResetButton(uint32_t iIRQ, void* pContext)
 {
 	prepare_exit();
 	SYS_ResetSystem(SYS_HOTRESET, 0, 0);
@@ -68,12 +68,12 @@ int main(int argc, char** argv)
 
 	load_settings(Settings::SCsDefaultPath);
 
-	u8 yXFB = 0;
+	uint8_t yXFB = 0;
 	JPEG imageNo(no_jpg, no_jpg_size);
 	JPEG imageYes(yes_jpg, yes_jpg_size);
 
 	WPADData* pWPADData1 = nullptr;
-	u32 iExpansionType = WPAD_EXP_NONE;
+	uint32_t iExpansionType = WPAD_EXP_NONE;
 
 	MODPlay_SetMOD(&SMODPlay, technique_mod);
 	MODPlay_SetVolume(&SMODPlay, 63, 63);

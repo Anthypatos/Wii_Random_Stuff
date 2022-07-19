@@ -4,12 +4,6 @@
 #include "../include/CEvent.hpp"
 
 
-CEvent::CEvent() {}
-
-
-CEvent::~CEvent() {}
-
-
 void CEvent::OnEvent(SDL_Event* pSdlEvent)
 {
     switch(pSdlEvent->type) 

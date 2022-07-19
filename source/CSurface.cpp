@@ -6,9 +6,6 @@
 #include "../include/CSurface.hpp"
 
 
-CSurface::CSurface() {}
-
-
 SDL_Surface* CSurface::OnLoad(const std::string& CsFilePath) 
 {
     SDL_Surface* pSdlSurfaceTemp = nullptr;
@@ -26,7 +23,8 @@ SDL_Surface* CSurface::OnLoad(const std::string& CsFilePath)
 }
 
 
-void CSurface::OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc, Sint32 iX, Sint32 iY)
+void CSurface::OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc, 
+    Sint32 iDestX, Sint32 iDestY)
 {
     if(pSdlSurfaceDest == nullptr || pSdlSurfaceSrc == nullptr) 
         throw std::invalid_argument("Surface is null");
@@ -35,30 +33,39 @@ void CSurface::OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc,
     SDL_Rect sdlRectDest;
 
     // Give the offsets to the rectangle
-    sdlRectDest.x = iX;
-    sdlRectDest.y = iY;
+    sdlRectDest.x = iDestX;
+    sdlRectDest.y = iDestY;
 
     SDL_BlitSurface(pSdlSurfaceSrc, nullptr, pSdlSurfaceDest, &sdlRectDest);
 }
 
 
-void CSurface::OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc, Sint32 iX, Sint32 iY, 
-    Sint32 iX2, Sint32 iY2, Sint32 iWidth, Sint32 iHeight) 
+void CSurface::OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc, 
+    Sint32 iDestX, Sint32 iDestY, Sint32 iSrcX, Sint32 iSrcY, Sint32 iSrcWidth, Sint32 iSrcHeight) 
 {
     if(pSdlSurfaceDest == nullptr || pSdlSurfaceSrc == nullptr) 
         throw std::invalid_argument("Surface is null");
  
     SDL_Rect sdlRectDest;
  
-    sdlRectDest.x = iX;
-    sdlRectDest.y = iY;
+    sdlRectDest.x = iDestX;
+    sdlRectDest.y = iDestY;
  
     SDL_Rect sdlRectSrc;
  
-    sdlRectSrc.x = iX2;
-    sdlRectSrc.y = iY2;
-    sdlRectSrc.w = iWidth;
-    sdlRectSrc.h = iHeight;
+    sdlRectSrc.x = iSrcX;
+    sdlRectSrc.y = iSrcY;
+    sdlRectSrc.w = iSrcWidth;
+    sdlRectSrc.h = iSrcHeight;
  
     SDL_BlitSurface(pSdlSurfaceSrc, &sdlRectSrc, pSdlSurfaceDest, &sdlRectDest);
+}
+
+
+void CSurface::Transparent(SDL_Surface* pSdlSurfaceDest, Sint32 iRed, Sint32 iGreen, Sint32 iBlue) 
+{
+    if(pSdlSurfaceDest == nullptr) throw std::invalid_argument("Surface is null");
+ 
+    SDL_SetColorKey(pSdlSurfaceDest, SDL_SRCCOLORKEY | SDL_RLEACCEL, 
+        SDL_MapRGB(pSdlSurfaceDest->format, iRed, iGreen, iBlue));
 }

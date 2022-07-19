@@ -36,20 +36,23 @@ public:
 
     /**
      * @brief Constructs a new object by reading a settings file
-     * @param sFilePath the path to the JSON file holding the settings
+     * @param CsFilePath the path to the JSON file holding the settings
      */
-    explicit Settings(const std::string& sFilePath);
+    explicit Settings(const std::string& CsFilePath);
 
     /**
      * @brief Saves the settings on disk
-     * @param sPath the path where the settings are to be stored
+     * @param CsPath the path where the settings are to be stored
      */
-    void save(const std::string& sPath) const;
+    void save(const std::string& CsPath) const;
 
 private:
     bool _bBackgroundMusic;     /**< Toggles background music */
     bool _bRumble;              /**< Toggles rumble */
+    
 };
+
+
 inline bool Settings::getBackgroundMusic() const noexcept { return _bBackgroundMusic; }
 inline void Settings::setBackgroundMusic(bool bBackgroundMusic) noexcept { _bBackgroundMusic = bBackgroundMusic; }
 inline bool Settings::getRumble() const noexcept { return _bRumble; }

@@ -14,12 +14,12 @@
 #include "../include/DRAW.hpp"
 
 
-void print_wiimote_data(void* pXfb, const GXRModeObj* pGXRmode, WPADData* pWPADData)
+void print_wiimote_data(void* pXfb, const GXRModeObj* CpGXRmode, WPADData* pWPADData)
 {
 	std::cout << "Data->Err: " << pWPADData->err << std::endl << std::endl;
 	
 	/*std::cout << "IR Dots: " << std::endl;
-	for(s32 i = 0; i < 4; i++) 
+	for(int32_t i = 0; i < 4; i++) 
 	{
 		if(pWPADData->ir.dot[i].visible) 
 		{
@@ -32,18 +32,18 @@ void print_wiimote_data(void* pXfb, const GXRModeObj* pGXRmode, WPADData* pWPADD
 	}
 	std::cout << std::endl;*/
 	
-	//ir.valid - TRUE is the wiimote is pointing at the screen, else it is false
+	// ir.valid - TRUE is the wiimote is pointing at the screen, else it is false
 	if(pWPADData->ir.valid) 
 	{
 		//float theta = pWPADData->ir.angle / 180.0 * M_PI;
 	
-		//ir.x/ir.y - The x/y coordinates that the wiimote is pointing to, relative to the screen.
-		//ir.angle - how far (in degrees) the wiimote is twisted (based on ir)
+		// ir.x/ir.y - The x/y coordinates that the wiimote is pointing to, relative to the screen.
+		// ir.angle - how far (in degrees) the wiimote is twisted (based on ir)
 		std::cout << "Cursor: " << std::fixed << std::setprecision(2) << pWPADData->ir.x << ", " << 
 			pWPADData->ir.y << std::endl;
 		std::cout << pWPADData->ir.angle << " deg" << std::endl << std::endl;
 		
-		DRAW_dot(pXfb, pGXRmode, pGXRmode->fbWidth, pGXRmode->xfbHeight, pWPADData->ir.x - 2, 
+		DRAW_dot(pXfb, CpGXRmode, CpGXRmode->fbWidth, CpGXRmode->xfbHeight, pWPADData->ir.x - 2, 
             pWPADData->ir.y - 2, pWPADData->ir.x + 2, pWPADData->ir.y + 2, COLOR_RED);
 		/*DRAW_dot(xfb, rmode, rmode->fbWidth, rmode->xfbHeight, pWPADData->ir.x - 2 + 10 * sinf(theta), 
 			pWPADData->ir.y - 2 - 10 * cosf(theta), pWPADData->ir.x + 2 + 10 * sinf(theta), 
@@ -53,16 +53,16 @@ void print_wiimote_data(void* pXfb, const GXRModeObj* pGXRmode, WPADData* pWPADD
 	
 	if(pWPADData->ir.raw_valid) 
 	{
-		//ir.z - How far away the wiimote is from the screen in meters
+		// ir.z - How far away the wiimote is from the screen in meters
 		std::cout << "Distance: " << pWPADData->ir.z << "m" << std::endl;
 		//orient.yaw - The left/right angle of the wiimote to the screen 
 		std::cout << "Yaw: " << pWPADData->orient.yaw << " deg" << std::endl << std::endl;
 
-		/*for(s32 i = 0; i < 2; i++) 
+		/*for(int32_t i = 0; i < 2; i++) 
 		{
 			std::cout << pWPADData->ir.sensorbar.rot_dots[i].x << ", " << 
 				pWPADData->ir.sensorbar.rot_dots[i].y << std::endl;
-			DRAW_dot(xfb, rmode, 4, 4, pWPADData->ir.sensorbar.rot_dots[i].x + 2, 
+			DRAW_dot(pXfb, CpGXRmode, 4, 4, pWPADData->ir.sensorbar.rot_dots[i].x + 2, 
 				pWPADData->ir.sensorbar.rot_dots[i].y + 2, pWPADData->ir.sensorbar.rot_dots[i].x + 2, 
 				pWPADData->ir.sensorbar.rot_dots[i].y + 2, COLOR_GREEN);
 		}*/
@@ -70,14 +70,14 @@ void print_wiimote_data(void* pXfb, const GXRModeObj* pGXRmode, WPADData* pWPADD
 	else std::cout << std::endl << std::endl;
 
 	std::cout << "Acceleration:" << std::endl;
-	//accel.x/accel.y/accel.z - analog values for the accelleration of the wiimote
-	//(Note: Gravity pulls downwards, so even if the wiimote is not moving, 
-	//one(or more) axis will have a reading as if it is moving "upwards")
+	// accel.x/accel.y/accel.z - analog values for the accelleration of the wiimote
+	// (Note: Gravity pulls downwards, so even if the wiimote is not moving, 
+	// one(or more) axis will have a reading as if it is moving "upwards")
 	std::cout << "XYZ: " << std::setw(3) << pWPADData->accel.x << ", " << pWPADData->accel.y << ", " << 
 		pWPADData->accel.z << std::endl << std::endl;
-	//orient.pitch - how far the wiimote is "tilted" in degrees
+	// orient.pitch - how far the wiimote is "tilted" in degrees
 	std::cout << "Pitch: " << pWPADData->orient.pitch << " deg" << std::endl;
-	//orient.roll - how far the wiimote is "twisted" in degrees (uses accelerometer)
+	// orient.roll - how far the wiimote is "twisted" in degrees (uses accelerometer)
 	std::cout << "Roll: " << pWPADData->orient.roll << " deg" << std::endl;
 }
 
@@ -87,7 +87,7 @@ void state_in_game(SDL_Surface* pSDLSurfaceScreen, SDL_Joystick** joysticks)
 	SDL_FillRect(pSDLSurfaceScreen, nullptr, SDL_MapRGB(pSDLSurfaceScreen->format, 35, 75, 0));
 	
 	// Joysticks' properties can be fetched
-	for (u8 i = 0; i < JOYNUMS; i++)
+	for (uint8_t i = 0; i < JOYNUMS; i++)
 		std::cout << "JOYPAD " << i << std::endl << "HAS " << SDL_JoystickNumAxes(joysticks[i]) <<
 			" AXES" << std::endl << "AND " << SDL_JoystickNumButtons(joysticks[i]) << " BUTTONS" << 
 			std::endl << "AND " << SDL_JoystickNumBalls(joysticks[i]) << " BALLS" << std::endl << 
@@ -158,14 +158,14 @@ void state_in_game(SDL_Surface* pSDLSurfaceScreen, SDL_Joystick** joysticks)
 		SDLEvent.jaxis.axis << std::endl << "VALUE " << SDLEvent.jaxis.value;
 	
 	// The hat reports the directional PAD's status 
-	for (u8 i = 0; i < JOYNUMS; i++)
+	for (uint8_t i = 0; i < JOYNUMS; i++)
 	{
-		u8 yHats = SDL_JoystickNumHats(joysticks[i]);
-		for (u8 j = 0; j < yHats; j++)
+		uint8_t yHats = SDL_JoystickNumHats(joysticks[i]);
+		for (uint8_t j = 0; j < yHats; j++)
 		{
 			std::cout << "HAT " << j << " ";
 
-			u8 yJoystate = SDL_JoystickGetHat(joysticks[i], j);
+			uint8_t yJoystate = SDL_JoystickGetHat(joysticks[i], j);
 			switch (yJoystate)
 			{
 				case SDL_HAT_CENTERED: 		std::cout << "CENTERED"; 	break;

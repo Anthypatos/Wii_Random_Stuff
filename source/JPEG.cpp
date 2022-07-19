@@ -17,7 +17,7 @@
 #include <ios>
 #include <new>
 #include <turbojpeg.h>
-#include <gctypes.h>
+#include <cstdint>
 #include <ogc/gx_struct.h>
 #include "../include/JPEG.hpp"
 
@@ -25,16 +25,16 @@
 /**
  * @brief Construct a new JPEG object from a file in the filesystem
  * 
- * @param sFilePath the path to the image in the filesystem
+ * @param CsFilePath the path to the image in the filesystem
  */
-JPEG::JPEG(const std::string& sFilePath) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _iPosY{0}, 
-	_pImgBuf{nullptr}
+JPEG::JPEG(const std::string& CsFilePath) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _iPosY{0}, 
+	_piImgBuf{nullptr}
 {
-	u8* pyJpegBuf = nullptr;	// In-memory buffer for the compressed image
+	uint8_t* pyJpegBuf = nullptr;	// In-memory buffer for the compressed image
 	u64 lJpegSize = 0;			// Size of the image in bytes
 
 	/* Read the JPEG file into memory. */
-	std::ifstream fileJpeg(sFilePath, std::ios_base::in | std::ios_base::binary | std::ios_base::ate);
+	std::ifstream fileJpeg(CsFilePath, std::ios_base::in | std::ios_base::binary | std::ios_base::ate);
 	lJpegSize = fileJpeg.tellg();
 	if (lJpegSize == 0) throw std::ios_base::failure("Input file contains no data");
 	fileJpeg.seekg(0, std::ios_base::beg);
@@ -56,41 +56,41 @@ JPEG::JPEG(const std::string& sFilePath) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _
 /**
  * @brief Construct a new JPEG object from an image buffer
  * 
- * @param pyJpegBuf pointer to the buffer of the compressed image
+ * @param CpyJpegBuf pointer to the buffer of the compressed image
  * @param lJpegSize the size of the image in bytes
  */
-JPEG::JPEG(const u8* pyJpegBuf, u64 lJpegSize) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _iPosY{0}, 
-	_pImgBuf{nullptr}
+JPEG::JPEG(const uint8_t* CpyJpegBuf, u64 lJpegSize) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _iPosY{0}, 
+	_piImgBuf{nullptr}
 {
 	tjhandle tjhandle = nullptr;	// Handle instance for the decompression
-	u8* pyRgbBuf = nullptr;			// Buffer for the decompressed image
-	s32 iInSubsamp = 0;
-	s32 iInColorspace = 0;
+	uint8_t* pyRgbBuf = nullptr;			// Buffer for the decompressed image
+	int32_t iInSubsamp = 0;
+	int32_t iInColorspace = 0;
 
 	if ((tjhandle = tjInitDecompress()) == nullptr) 
 		throw std::runtime_error("Error initializing decompressor");
 
-	if (tjDecompressHeader3(tjhandle, pyJpegBuf, lJpegSize, &_iWidth, &_iHeight, &iInSubsamp, 
+	if (tjDecompressHeader3(tjhandle, CpyJpegBuf, lJpegSize, &_iWidth, &_iHeight, &iInSubsamp, 
 		&iInColorspace) < 0) throw std::runtime_error("Error reading JPEG header");
 
 	if ((pyRgbBuf = tjAlloc(_iWidth * _iHeight * tjPixelSize[TJPF_RGB])) == nullptr)
 		throw std::bad_alloc();
 
-	if (tjDecompress2(tjhandle, pyJpegBuf, lJpegSize, pyRgbBuf, _iWidth, 0, _iHeight, TJPF_RGB, 0) < 0)
+	if (tjDecompress2(tjhandle, CpyJpegBuf, lJpegSize, pyRgbBuf, _iWidth, 0, _iHeight, TJPF_RGB, 0) < 0)
 		throw std::runtime_error("Error decompressing JPEG imagen");
 
-	_pImgBuf = new u32[_iHeight * (_iWidth >> 1)];	// Allocate space for the converted Y1CbY2Cr image
+	_piImgBuf = new uint32_t[_iHeight * (_iWidth >> 1)];	// Allocate space for the converted Y1CbY2Cr image
 
-	/* Translate the RGB values to Y1CbY2Cr and store them inside _pImgBuf */
-	u32 iRow = 0, iColumn = 0;
-	for (u16 i = 0; i < _iHeight; i++)	// For every scanline
+	/* Translate the RGB values to Y1CbY2Cr and store them inside _piImgBuf */
+	uint32_t iRow = 0, iColumn = 0;
+	for (uint16_t i = 0; i < _iHeight; i++)	// For every scanline
 	{
 		iRow = i * _iWidth * tjPixelSize[TJPF_RGB];	// Offset to the i'th row. Rows have a number of color components in every pixel
-		for (u16 j = 0; j < (_iWidth >> 1); j++)	// Every 2 pixels in the XFB share the same color values
+		for (uint16_t j = 0; j < (_iWidth >> 1); j++)	// Every 2 pixels in the XFB share the same color values
 		{
 			iColumn = j * (tjPixelSize[TJPF_RGB] << 1);	// We leap through every 2 columns since we process 2 pixels every iteration
 			/* Translate values and store them in the right offset inside the XFB */
-			_pImgBuf[i * (_iWidth >> 1) + j] = 
+			_piImgBuf[i * (_iWidth >> 1) + j] = 
 				JPEG::rgb2yuv(pyRgbBuf[iRow + iColumn], pyRgbBuf[iRow + iColumn + 1],
 					pyRgbBuf[iRow + iColumn + 2], pyRgbBuf[iRow + iColumn + 3], 
 					pyRgbBuf[iRow + iColumn + 4], pyRgbBuf[iRow + iColumn + 5]);
@@ -108,11 +108,12 @@ JPEG::JPEG(const u8* pyJpegBuf, u64 lJpegSize) : _iWidth{0}, _iHeight{0}, _iPosX
 /**
  * @brief Copy constructor
  * 
- * @param jpegOther the JPEG::JPEG object to be copied
+ * @param CjpegOther the JPEG::JPEG object to be copied
  */
-JPEG::JPEG(const JPEG& jpegOther) : _iWidth{jpegOther._iWidth}, _iHeight{jpegOther._iHeight},
-	_iPosX{jpegOther._iPosX}, _iPosY{jpegOther._iPosY}, _pImgBuf{new u32[(_iWidth >> 1) * _iHeight]}
-{ memcpy(_pImgBuf, jpegOther._pImgBuf, (_iWidth << 1) * _iHeight); }
+JPEG::JPEG(const JPEG& CjpegOther) : _iWidth{CjpegOther._iWidth}, _iHeight{CjpegOther._iHeight},
+	_iPosX{CjpegOther._iPosX}, _iPosY{CjpegOther._iPosY}, 
+	_piImgBuf{new uint32_t[(_iWidth >> 1) * _iHeight]}
+{ memcpy(_piImgBuf, CjpegOther._piImgBuf, (_iWidth << 1) * _iHeight); }
 
 
 /**
@@ -121,35 +122,35 @@ JPEG::JPEG(const JPEG& jpegOther) : _iWidth{jpegOther._iWidth}, _iHeight{jpegOth
  * @param jpegOther the JPEG::JPEG object to be moved
  */
 JPEG::JPEG(JPEG&& jpegOther) noexcept : _iWidth{jpegOther._iWidth}, _iHeight{jpegOther._iHeight},
-	_iPosX{jpegOther._iPosX}, _iPosY{jpegOther._iPosY}, _pImgBuf{jpegOther._pImgBuf}
+	_iPosX{jpegOther._iPosX}, _iPosY{jpegOther._iPosY}, _piImgBuf{jpegOther._piImgBuf}
 {
 	jpegOther._iWidth = 0;
 	jpegOther._iHeight = 0;
 	jpegOther._iPosX = 0;
 	jpegOther._iPosY = 0;
-	jpegOther._pImgBuf = nullptr;
+	jpegOther._piImgBuf = nullptr;
 }
 
 
 /**
  * @brief Assign with copy operator
  * 
- * @param jpegOther the JPEG::JPEG object to be assigned
+ * @param CjpegOther the JPEG::JPEG object to be assigned
  * @return JPEG& a copy of the JPEG::JPEG object
  */
-JPEG& JPEG::operator =(const JPEG& jpegOther)
+JPEG& JPEG::operator =(const JPEG& CjpegOther)
 {
-	if (this != &jpegOther)
+	if (this != &CjpegOther)
 	{
-		delete[] _pImgBuf;
+		delete[] _piImgBuf;
 
-		_iWidth = jpegOther._iWidth;
-		_iHeight = jpegOther._iHeight;
-		_iPosX = jpegOther._iPosX;
-		_iPosY = jpegOther._iPosY;
-		_pImgBuf = new u32[(_iWidth >> 1) * _iHeight];
+		_iWidth = CjpegOther._iWidth;
+		_iHeight = CjpegOther._iHeight;
+		_iPosX = CjpegOther._iPosX;
+		_iPosY = CjpegOther._iPosY;
+		_piImgBuf = new uint32_t[(_iWidth >> 1) * _iHeight];
 
-		memcpy(_pImgBuf, jpegOther._pImgBuf, (_iWidth << 1) * _iHeight);
+		memcpy(_piImgBuf, CjpegOther._piImgBuf, (_iWidth << 1) * _iHeight);
 	}
 
 	return *this;
@@ -166,19 +167,19 @@ JPEG& JPEG::operator =(JPEG&& jpegOther) noexcept
 {
 	if (this != &jpegOther)
 	{
-		delete[] _pImgBuf;
+		delete[] _piImgBuf;
 
 		_iWidth = jpegOther._iWidth;
 		_iHeight = jpegOther._iHeight;
 		_iPosX = jpegOther._iPosX;
 		_iPosY = jpegOther._iPosY;
-		_pImgBuf = jpegOther._pImgBuf;
+		_piImgBuf = jpegOther._piImgBuf;
 		
 		jpegOther._iWidth = 0;
 		jpegOther._iHeight = 0;
 		jpegOther._iPosX = 0;
 		jpegOther._iPosY = 0;
-		jpegOther._pImgBuf = nullptr;
+		jpegOther._piImgBuf = nullptr;
 	}
 
 	return *this;
@@ -190,8 +191,8 @@ JPEG& JPEG::operator =(JPEG&& jpegOther) noexcept
  */
 JPEG::~JPEG() noexcept
 {
-	delete[] _pImgBuf;
-	_pImgBuf = nullptr;
+	delete[] _piImgBuf;
+	_piImgBuf = nullptr;
 }
 
 
@@ -201,13 +202,13 @@ JPEG::~JPEG() noexcept
  * be partially displayed
  * 
  * @param pXfb a pointer to the start of the XFB region
- * @param pGXRmode a rendermode object holding the rendering parameters
+ * @param CpGXRmode a rendermode object holding the rendering parameters
  * @param fOriginalWidth the width of the canvas that is being drawn
  * @param fOriginalHeight the height of the canvas that is being drawn
  * @param fX the coordinate X of the top left corner of the image on the canvas
  * @param fY the coordinate Y of the top left corner of the image on the canvas
  */
-void JPEG::display(void* pXfb, const GXRModeObj* pGXRmode, f32 fOriginalWidth, f32 fOriginalHeight, 
+void JPEG::display(void* pXfb, const GXRModeObj* CpGXRmode, f32 fOriginalWidth, f32 fOriginalHeight, 
 	f32 fX, f32 fY)
 {
 	if (fOriginalWidth <= 0 || fOriginalHeight <= 0) throw std::domain_error("Invalid dimensions");
@@ -217,27 +218,27 @@ void JPEG::display(void* pXfb, const GXRModeObj* pGXRmode, f32 fOriginalWidth, f
 	_iPosY = fY;
 
 	// Rule of thumb to translate coordinates to the XFB
-	s32 iX = static_cast<s32>(fX * (pGXRmode->fbWidth >> 1) / fOriginalWidth);
-	s32 iY = static_cast<s32>(fY * pGXRmode->xfbHeight / fOriginalHeight);
+	int32_t iX = static_cast<int32_t>(fX * (CpGXRmode->fbWidth >> 1) / fOriginalWidth);
+	int32_t iY = static_cast<int32_t>(fY * CpGXRmode->xfbHeight / fOriginalHeight);
 
-	u32* pFrameBuffer = static_cast<u32*>(pXfb);
+	uint32_t* pFrameBuffer = static_cast<uint32_t*>(pXfb);
 	bool bStop = false;	// Stop flag for the copy process
 
 	/* Copy whatever part of the image buffer is needed to the XFB */
-	for (u16 i = 0; i < _iHeight && !bStop; i++)	// For every scanline that is needed
+	for (uint16_t i = 0; i < _iHeight && !bStop; i++)	// For every scanline that is needed
 	{
 		if (iY + i < 0) i += (-iY - 1);	// If the first scanline is before the start of the XFB, jump to the first valid scanline
-		else if (iY + i >= pGXRmode->xfbHeight) bStop = true;	// Stop if we reach the end of the XFB
+		else if (iY + i >= CpGXRmode->xfbHeight) bStop = true;	// Stop if we reach the end of the XFB
 		else
 		{
 			if (iX < 0)	// If the X coordinate is to the left of the XFB copy the relevant part into it
-				memcpy(pFrameBuffer + (iY + i) * (pGXRmode->fbWidth >> 1), 
-					_pImgBuf + i * (_iWidth >> 1) + (-iX), 
-					std::min(((_iWidth >> 1) + iX) << 2, pGXRmode->fbWidth << 1));
-			else if (iX < pGXRmode->fbWidth)	// If the X coordinate is inside the XFB copy the relevant part into it
-				memcpy(pFrameBuffer + (iY + i) * (pGXRmode->fbWidth >> 1) + iX, 
-					_pImgBuf + i * (_iWidth >> 1), 
-					std::min(_iWidth << 1, ((pGXRmode->fbWidth >> 1) - iX) << 2));
+				memcpy(pFrameBuffer + (iY + i) * (CpGXRmode->fbWidth >> 1), 
+					_piImgBuf + i * (_iWidth >> 1) + (-iX), 
+					std::min(((_iWidth >> 1) + iX) << 2, CpGXRmode->fbWidth << 1));
+			else if (iX < CpGXRmode->fbWidth)	// If the X coordinate is inside the XFB copy the relevant part into it
+				memcpy(pFrameBuffer + (iY + i) * (CpGXRmode->fbWidth >> 1) + iX, 
+					_piImgBuf + i * (_iWidth >> 1), 
+					std::min(_iWidth << 1, ((CpGXRmode->fbWidth >> 1) - iX) << 2));
 		}
 	}
 }
@@ -246,27 +247,27 @@ void JPEG::display(void* pXfb, const GXRModeObj* pGXRmode, f32 fOriginalWidth, f
 /**
  * @brief Convert two RGB pixels to one Y1CbY2Cr
  * 
- * @param r1 the red component of the first pixel
- * @param g1 the green component of the first pixel
- * @param b1 the blue component of the first pixel
- * @param r2 the red component of the second pixel
- * @param g2 the green component of the second pixel
- * @param b2 the blue component of the second pixel
- * @return u32 the converted Y1CbY2Cr pixel value
+ * @param yR1 the red component of the first pixel
+ * @param yG1 the green component of the first pixel
+ * @param yB1 the blue component of the first pixel
+ * @param yR2 the red component of the second pixel
+ * @param yG2 the green component of the second pixel
+ * @param yB2 the blue component of the second pixel
+ * @return uint32_t the converted Y1CbY2Cr pixel value
  */
-u32 JPEG::rgb2yuv (u8 r1, u8 g1, u8 b1, u8 r2, u8 g2, u8 b2) noexcept
+uint32_t JPEG::rgb2yuv (uint8_t yR1, uint8_t yG1, uint8_t yB1, uint8_t yR2, uint8_t yG2, uint8_t yB2) noexcept
 {
 //---------------------------------------------------------------------------------
-	s32 y1, cb1, cr1, y2, cb2, cr2, cb, cr;
+	int32_t iY1, iCb1, iCr1, iY2, iCb2, iCr2, iCb, iCr;
 
-	y1 = (299 * r1 + 587 * g1 + 114 * b1) / 1000;
-	cb1 = (-16874 * r1 - 33126 * g1 + 50000 * b1 + 12800000) / 100000;
-	cr1 = (50000 * r1 - 41869 * g1 - 8131 * b1 + 12800000) / 100000;
-	y2 = (299 * r2 + 587 * g2 + 114 * b2) / 1000;
-	cb2 = (-16874 * r2 - 33126 * g2 + 50000 * b2 + 12800000) / 100000;
-	cr2 = (50000 * r2 - 41869 * g2 - 8131 * b2 + 12800000) / 100000;
+	iY1 = (299 * yR1 + 587 * yG1 + 114 * yB1) / 1000;
+	iCb1 = (-16874 * yR1 - 33126 * yG1 + 50000 * yB1 + 12800000) / 100000;
+	iCr1 = (50000 * yR1 - 41869 * yG1 - 8131 * yB1 + 12800000) / 100000;
+	iY2 = (299 * yR2 + 587 * yG2 + 114 * yB2) / 1000;
+	iCb2 = (-16874 * yR2 - 33126 * yG2 + 50000 * yB2 + 12800000) / 100000;
+	iCr2 = (50000 * yR2 - 41869 * yG2 - 8131 * yB2 + 12800000) / 100000;
 
-	cb = (cb1 + cb2) >> 1;
-	cr = (cr1 + cr2) >> 1;
-	return (y1 << 24) | (cb << 16) | (y2 << 8) | cr;
+	iCb = (iCb1 + iCb2) >> 1;
+	iCr = (iCr1 + iCr2) >> 1;
+	return (iY1 << 24) | (iCb << 16) | (iY2 << 8) | iCr;
 }

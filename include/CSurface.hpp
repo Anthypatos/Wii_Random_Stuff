@@ -9,13 +9,13 @@
 class CSurface 
 {
     public:
-        CSurface();
-
         static SDL_Surface* OnLoad(const std::string& CsFilePath);
         static void OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc, 
-            Sint32 iX, Sint32 iY);
+            Sint32 iDestX, Sint32 iDestY);
         static void OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc, 
-            Sint32 iX, Sint32 iY, Sint32 iX2, Sint32 iY2, Sint32 iWidth, Sint32 iHeight);
+            Sint32 iDestX, Sint32 iDestY, Sint32 iSrcX, Sint32 iSrcY, Sint32 iSrcWidth, Sint32 iSrcHeight);
+        static void Transparent(SDL_Surface* pSdlSurfaceDest, Sint32 iRed, Sint32 iGreen, Sint32 iBlue);
+
 };
 
 

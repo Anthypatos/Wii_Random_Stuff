@@ -12,7 +12,7 @@
 #define JPEG_HPP_
 
 #include <string>
-#include <gctypes.h>
+#include <cstdint>
 #include <ogc/gx_struct.h>
 
 /**
@@ -22,30 +22,30 @@ class JPEG
 {
 public:
     /** Getters */
-    s32 getWidth() const noexcept;
-    s32 getHeight() const noexcept;
-    s32 getPosX() const noexcept;
-    s32 getPosY() const noexcept;
-    const u32* getImgBuf() const noexcept;
+    int32_t getWidth() const noexcept;
+    int32_t getHeight() const noexcept;
+    int32_t getPosX() const noexcept;
+    int32_t getPosY() const noexcept;
+    const uint32_t* getImgBuf() const noexcept;
 
     /**
      * @brief Construct a new JPEG object from a file in the filesystem
-     * @param sFilePath the path to the image in the filesystem
+     * @param CsFilePath the path to the image in the filesystem
      */
-    explicit JPEG(const std::string& sFilePath);
+    explicit JPEG(const std::string& CsFilePath);
 
     /**
      * @brief Construct a new JPEG object from an image buffer
-     * @param pyJpegBuf pointer to the buffer of the compressed image
+     * @param CpyJpegBuf pointer to the buffer of the compressed image
      * @param lJpegSize the size of the image in bytes
      */
-    explicit JPEG(const u8* pyJpegBuf, u64 lJpegSize);
+    explicit JPEG(const uint8_t* CpyJpegBuf, u64 lJpegSize);
     
-    JPEG(const JPEG& jpegOther);        /**< Copy constructor */
+    JPEG(const JPEG& CjpegOther);        /**< Copy constructor */
     JPEG(JPEG&& jpegOther) noexcept;    /**< Movement constructor */
     ~JPEG() noexcept;                   /**< Destructor */
 
-    JPEG& operator =(const JPEG& jpegOtro);         /**< Assign with copy operator */
+    JPEG& operator =(const JPEG& CjpegOtro);         /**< Assign with copy operator */
     JPEG& operator =(JPEG&& jpegOtro) noexcept;     /**< Assign with movement operator */
 
     /**
@@ -54,29 +54,32 @@ public:
      * be partially displayed
      * 
      * @param pXfb a pointer to the start of the XFB region
-     * @param pGXRmode a rendermode object holding the rendering parameters
+     * @param CpGXRmode a rendermode object holding the rendering parameters
      * @param fOriginalWidth the width of the canvas that is being drawn
      * @param fOriginalHeight the height of the canvas that is being drawn
      * @param fX the coordinate X of the top left corner of the image on the canvas
      * @param fY the coordinate Y of the top left corner of the image on the canvas
      */
-    void display(void* pXfb, const GXRModeObj* pGXRmode, f32 fOriginalWidth, f32 fOriginalHeight, 
+    void display(void* pXfb, const GXRModeObj* CpGXRmode, f32 fOriginalWidth, f32 fOriginalHeight, 
         f32 fX, f32 fY);
 
 private:
-    s32 _iWidth;            /**< Width of the image in pixels */
-    s32 _iHeight;           /**< Height of the image in pixels */
-    s32 _iPosX;             /**< Coordinate X for the top left corner of the displayed image on the canvas*/
-    s32 _iPosY;             /**< Coordinate Y for the top left corner of the displayed image on the canvas*/
-    u32* _pImgBuf;          /**< Image buffer in Y1CbY2Cr values */
+    int32_t _iWidth;            /**< Width of the image in pixels */
+    int32_t _iHeight;           /**< Height of the image in pixels */
+    int32_t _iPosX;             /**< Coordinate X for the top left corner of the displayed image on the canvas*/
+    int32_t _iPosY;             /**< Coordinate Y for the top left corner of the displayed image on the canvas*/
+    uint32_t* _piImgBuf;        /**< Image buffer in Y1CbY2Cr values */
 
-    static u32 rgb2yuv(u8 r1, u8 g1, u8 b1, u8 r2, u8 g2, u8 b2) noexcept;
+    static uint32_t rgb2yuv(uint8_t yR1, uint8_t yG1, uint8_t yB1, uint8_t yR2, uint8_t yG2, uint8_t yB2) noexcept;
+
 };
-inline s32 JPEG::getWidth() const noexcept { return _iWidth; }
-inline s32 JPEG::getHeight() const noexcept { return _iHeight; }
-inline s32 JPEG::getPosX() const noexcept { return _iPosX; }
-inline s32 JPEG::getPosY() const noexcept { return _iPosY; }
-inline const u32* JPEG::getImgBuf() const noexcept { return _pImgBuf; }
+
+
+inline int32_t JPEG::getWidth() const noexcept { return _iWidth; }
+inline int32_t JPEG::getHeight() const noexcept { return _iHeight; }
+inline int32_t JPEG::getPosX() const noexcept { return _iPosX; }
+inline int32_t JPEG::getPosY() const noexcept { return _iPosY; }
+inline const uint32_t* JPEG::getImgBuf() const noexcept { return _piImgBuf; }
 
 
 #endif
