@@ -13,19 +13,18 @@ class AI
 
         AI(const Grid::PlayerMark& CEPlayerMark, uint8_t ySearchLimit = CHAR_MAX) noexcept;
 
-        int32_t heuristic(const Grid& CGrid) noexcept;
-        void ab_pruning(Grid& grid, const Grid::PlayerMark& CEPlayerMark) noexcept;
-        int32_t ab_minValue(const Grid& CGrid, const Grid::PlayerMark& CEPlayerMark, int32_t iDepth, 
-            int32_t iAlpha, int32_t iBeta) noexcept;
-        int32_t ab_maxValue(const Grid& CGrid, const Grid::PlayerMark& CEPlayerMark, int32_t iDepth, 
-            int32_t iAlpha, int32_t iBeta) noexcept;
+        void ab_pruning(Grid& grid) const noexcept;
 
     private:
         Grid::PlayerMark _EPlayerMark;
         uint8_t _ySearchLimit;
 
-        static uint8_t playerMark2Heuristic(const Grid::PlayerMark& CEPlayerMarkOwn, const Grid& CGrid,
-            uint8_t yRow, uint8_t yColumn) noexcept;
+        int32_t ab_minValue(const Grid& CGrid, const Grid::PlayerMark& CEPlayerMark, int32_t iDepth, 
+            int32_t iAlpha, int32_t iBeta) const noexcept;
+        int32_t ab_maxValue(const Grid& CGrid, const Grid::PlayerMark& CEPlayerMark, int32_t iDepth, 
+            int32_t iAlpha, int32_t iBeta) const noexcept;
+        int32_t heuristic(const Grid& CGrid) const noexcept;
+        uint8_t playerMark2Heuristic(const Grid& CGrid, uint8_t yRow, uint8_t yColumn) const noexcept;
 };
 
 

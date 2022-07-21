@@ -10,7 +10,7 @@ AI::AI(const Grid::PlayerMark& CEPlayerMark, uint8_t ySearchLimit) noexcept : _E
 {}
 
 
-void AI::ab_pruning(Grid& grid, const Grid::PlayerMark& CEPlayerMark) noexcept
+void AI::ab_pruning(Grid& grid) const noexcept
 {
     int32_t iAlpha = INT_MIN, iBeta = INT_MAX, iDepth = 1, iBestPlayRow = 0, iBestPlayColumn = 0, 
         iValue = 0;
@@ -22,8 +22,8 @@ void AI::ab_pruning(Grid& grid, const Grid::PlayerMark& CEPlayerMark) noexcept
             if (grid.isValidPlay(i, j))
             {
                 Grid gridAttempt = grid;
-                gridAttempt.makePlay(CEPlayerMark, i, j);
-                iValue = AI::ab_minValue(gridAttempt, Grid::nextPlayer(CEPlayerMark), iDepth + 1, 
+                gridAttempt.makePlay(_EPlayerMark, i, j);
+                iValue = AI::ab_minValue(gridAttempt, Grid::nextPlayer(_EPlayerMark), iDepth + 1, 
                     iAlpha, iBeta);
 
                 if (iValue > iAlpha)
@@ -36,12 +36,12 @@ void AI::ab_pruning(Grid& grid, const Grid::PlayerMark& CEPlayerMark) noexcept
     }
 
     if (grid.isValidPlay(iBestPlayRow, iBestPlayColumn)) 
-        grid.makePlay(CEPlayerMark, iBestPlayRow, iBestPlayColumn);
+        grid.makePlay(_EPlayerMark, iBestPlayRow, iBestPlayColumn);
 }
 
 
 int32_t AI::ab_minValue(const Grid& CGrid, const Grid::PlayerMark& CEPlayerMark, int32_t iDepth, 
-    int32_t iAlpha, int32_t iBeta) noexcept
+    int32_t iAlpha, int32_t iBeta) const noexcept
 {
     int8_t yWinner = CGrid.endResult();
 
@@ -69,7 +69,7 @@ int32_t AI::ab_minValue(const Grid& CGrid, const Grid::PlayerMark& CEPlayerMark,
 
 
 int32_t AI::ab_maxValue(const Grid& CGrid, const Grid::PlayerMark& CEPlayerMark, int32_t iDepth, 
-    int32_t iAlpha, int32_t iBeta) noexcept
+    int32_t iAlpha, int32_t iBeta) const noexcept
 {
     int8_t yWinner = CGrid.endResult();
 
@@ -96,7 +96,7 @@ int32_t AI::ab_maxValue(const Grid& CGrid, const Grid::PlayerMark& CEPlayerMark,
 }
 
 
-int32_t AI::heuristic(const Grid& CGrid) noexcept
+int32_t AI::heuristic(const Grid& CGrid) const noexcept
 {
     uint8_t yHeight = CGrid.getHeight();
     uint8_t yWidth = CGrid.getWidth();
@@ -121,8 +121,7 @@ int32_t AI::heuristic(const Grid& CGrid) noexcept
                     }
 
                     if (yCounter == yMatchNumber) return CGrid[i][j];
-                    else iHeuristic += yCounter * 
-                        AI::playerMark2Heuristic(Grid::PlayerMark::GRID_TYPE_X, CGrid, i, j);
+                    else iHeuristic += (playerMark2Heuristic(CGrid, i, j) * yCounter);
                 }
                 // Vertical down check
                 if (i <= yHeight - yMatchNumber && (i == 0 || CGrid[i][j] != CGrid[i - 1][j]))
@@ -136,8 +135,7 @@ int32_t AI::heuristic(const Grid& CGrid) noexcept
                     }
 
                     if (yCounter == yMatchNumber) return CGrid[i][j];
-                    else iHeuristic += yCounter * 
-                        AI::playerMark2Heuristic(Grid::PlayerMark::GRID_TYPE_X, CGrid, i, j);
+                    else iHeuristic += (playerMark2Heuristic(CGrid, i, j) * yCounter);
                 }
                 // Horizontal left check
                 if (j >= yMatchNumber && (j == yWidth - 1 || CGrid[i][j] != CGrid[i][j + 1]))
@@ -151,8 +149,7 @@ int32_t AI::heuristic(const Grid& CGrid) noexcept
                     }
 
                     if (yCounter == yMatchNumber) return CGrid[i][j];
-                    else iHeuristic += yCounter * 
-                        AI::playerMark2Heuristic(Grid::PlayerMark::GRID_TYPE_X, CGrid, i, j);
+                    else iHeuristic += (playerMark2Heuristic(CGrid, i, j) * yCounter);
                 }
                 // Horizontal right check
                 if (j <= yWidth - yMatchNumber && (j == 0 || CGrid[i][j] != CGrid[i][j - 1]))
@@ -166,8 +163,7 @@ int32_t AI::heuristic(const Grid& CGrid) noexcept
                     }
 
                     if (yCounter == yMatchNumber) return CGrid[i][j];
-                    else iHeuristic += yCounter * 
-                        AI::playerMark2Heuristic(Grid::PlayerMark::GRID_TYPE_X, CGrid, i, j);
+                    else iHeuristic += (playerMark2Heuristic(CGrid, i, j) * yCounter);
                 }
                 // Diagonal up right check
                 if (i >= yMatchNumber && j <= yWidth - yMatchNumber &&
@@ -182,8 +178,7 @@ int32_t AI::heuristic(const Grid& CGrid) noexcept
                     }
 
                     if (yCounter == yMatchNumber) return CGrid[i][j];
-                    else iHeuristic += yCounter * 
-                        AI::playerMark2Heuristic(Grid::PlayerMark::GRID_TYPE_X, CGrid, i, j);
+                    else iHeuristic += (playerMark2Heuristic(CGrid, i, j) * yCounter);
                 }
                 // Diagonal down left check
                 if (i <= yHeight - yMatchNumber && j >= yMatchNumber &&
@@ -198,8 +193,7 @@ int32_t AI::heuristic(const Grid& CGrid) noexcept
                     }
 
                     if (yCounter == yMatchNumber) return CGrid[i][j];
-                    else iHeuristic += yCounter * 
-                        AI::playerMark2Heuristic(Grid::PlayerMark::GRID_TYPE_X, CGrid, i, j);
+                    else iHeuristic += (playerMark2Heuristic(CGrid, i, j) * yCounter);
                 }
                 // Diagonal up left check
                 if (i >= yMatchNumber && j >= yMatchNumber &&
@@ -214,8 +208,7 @@ int32_t AI::heuristic(const Grid& CGrid) noexcept
                     }
 
                     if (yCounter == yMatchNumber) return CGrid[i][j];
-                    else iHeuristic += yCounter * 
-                        AI::playerMark2Heuristic(Grid::PlayerMark::GRID_TYPE_X, CGrid, i, j);
+                    else iHeuristic += (playerMark2Heuristic(CGrid, i, j) * yCounter);
                 }
                 // Diagonal down right check
                 if (i <= yHeight - yMatchNumber && j <= yWidth - yMatchNumber &&
@@ -230,8 +223,7 @@ int32_t AI::heuristic(const Grid& CGrid) noexcept
                     }
 
                     if (yCounter == yMatchNumber) return CGrid[i][j];
-                    else iHeuristic += yCounter * 
-                        AI::playerMark2Heuristic(Grid::PlayerMark::GRID_TYPE_X, CGrid, i, j);
+                    else iHeuristic += (playerMark2Heuristic(CGrid, i, j) * yCounter);
                 }
             }
         }
@@ -240,9 +232,8 @@ int32_t AI::heuristic(const Grid& CGrid) noexcept
 }
 
 
-uint8_t AI::playerMark2Heuristic(const Grid::PlayerMark& CEPlayerMarkOwn, const Grid& CGrid, 
-    uint8_t yRow, uint8_t yColumn) noexcept
+uint8_t AI::playerMark2Heuristic(const Grid& CGrid, uint8_t yRow, uint8_t yColumn) const noexcept
 {
-    if (CGrid[yRow][yColumn] == CEPlayerMarkOwn) return 1;
+    if (CGrid[yRow][yColumn] == _EPlayerMark) return 1;
     else return - 1;
 }
