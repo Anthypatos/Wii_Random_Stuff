@@ -14,7 +14,7 @@ CApp* CApp::getInstance()
 
 
 CApp::CApp() noexcept : CEvent{}, _bRunning{true},  _pSdlSurfaceDisplay{nullptr}, 
-    _pSdlSurfaceGrid{nullptr}, _pSdlSurfaceX{nullptr}, _pSdlSurfaceO{nullptr}, _grid{3, 3}, 
+    _pSdlSurfaceGrid{nullptr}, _pSdlSurfaceX{nullptr}, _pSdlSurfaceO{nullptr}, _grid{3, 3, 3}, 
     _EPlayerMarkCurrent{Grid::PlayerMark::GRID_TYPE_O} {}
 
 
@@ -38,7 +38,7 @@ void CApp::OnExecute()
 
 void CApp::Reset() noexcept
 {
-    _grid = Grid{_grid.getHeight(), _grid.getWidth()};
+    _grid = Grid{_grid.getHeight(), _grid.getWidth(), _grid.getMatchNumber()};
 }
 
 

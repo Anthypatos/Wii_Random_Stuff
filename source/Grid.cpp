@@ -53,18 +53,22 @@ Grid::PlayerMark Grid::endResult() const noexcept
                     (i == 0 || _a2PlayerMarkCells[i - 1][j] != _a2PlayerMarkCells[i][j]))
                 {
                     uint8_t yOffset = 1, yCounter = 1;
-                    while (yCounter < 4 && _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i + yOffset][j])
+                    while (yCounter < _yMatchNumber && 
+                        _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i + yOffset][j])
                         yCounter++, yOffset++;
-                    if (yCounter == 4) return _a2PlayerMarkCells[i][j];
+
+                    if (yCounter == _yMatchNumber) return _a2PlayerMarkCells[i][j];
                 }
                 // Horizontal check
                 if (j <= _a2PlayerMarkCells[0].size() - _yMatchNumber && 
                     (j == 0 || _a2PlayerMarkCells[i][j - 1] != _a2PlayerMarkCells[i][j]))
                 {
                     uint8_t yOffset = 1, yCounter = 1;
-                    while (yCounter < 4 && _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i][j + yOffset])
+                    while (yCounter < _yMatchNumber && 
+                        _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i][j + yOffset])
                         yCounter++, yOffset++;
-                    if (yCounter == 4) return _a2PlayerMarkCells[i][j];
+
+                    if (yCounter == _yMatchNumber) return _a2PlayerMarkCells[i][j];
                 }
                 // Diagonal left check
                 if (i <= _a2PlayerMarkCells.size() - _yMatchNumber && j >= _yMatchNumber &&
@@ -72,10 +76,11 @@ Grid::PlayerMark Grid::endResult() const noexcept
                     _a2PlayerMarkCells[i - 1][j + 1] != _a2PlayerMarkCells[i][j]))
                 {
                     uint8_t yOffset = 1, yCounter = 1;
-                    while (yCounter < 4 && 
+                    while (yCounter < _yMatchNumber && 
                         _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i + yOffset][j - yOffset])
                         yCounter++, yOffset++;
-                    if (yCounter == 4) return _a2PlayerMarkCells[i][j];
+                        
+                    if (yCounter == _yMatchNumber) return _a2PlayerMarkCells[i][j];
                 }
                 // Diagonal right check
                 if (i <= _a2PlayerMarkCells.size() - _yMatchNumber && 
@@ -83,10 +88,11 @@ Grid::PlayerMark Grid::endResult() const noexcept
                     (i == 0 || j == 0 || _a2PlayerMarkCells[i - 1][j - 1] != _a2PlayerMarkCells[i][j]))
                 {
                     uint8_t yOffset = 1, yCounter = 1;
-                    while (yCounter < 4 && 
+                    while (yCounter < _yMatchNumber && 
                         _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i + yOffset][j + yOffset])
                         yCounter++, yOffset++;
-                    if (yCounter == 4) return _a2PlayerMarkCells[i][j];
+
+                    if (yCounter == _yMatchNumber) return _a2PlayerMarkCells[i][j];
                 }
             }
         }
