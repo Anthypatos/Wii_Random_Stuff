@@ -6,8 +6,10 @@
 #include "../include/Grid.hpp"
 
 
-Grid::Grid(uint8_t yHeight, uint8_t yWidth) : _yEmptyCells{yHeight * yWidth}, 
-    _a2PlayerMarkCells{yHeight, std::vector<PlayerMark>{yWidth, GRID_TYPE_NONE}} {}
+Grid::Grid(uint8_t yHeight, uint8_t yWidth, uint8_t yMatchNumber) : _iEmptyCells{yHeight * yWidth}, 
+    _yMatchNumber{yMatchNumber},
+    _a2PlayerMarkCells{yHeight, std::vector<PlayerMark>{yWidth, GRID_TYPE_NONE}} 
+{}
 
 
 Grid::PlayerMark Grid::nextPlayer(const PlayerMark& CEPlayerMark) noexcept
@@ -26,21 +28,70 @@ void Grid::makePlay(const PlayerMark& CEPlayerMark, uint8_t yPlayRow, uint8_t yP
     if (!isValidPlay(yPlayRow, yPlayColumn)) throw std::domain_error("Play is not valid");
 
     _a2PlayerMarkCells[yPlayRow][yPlayColumn] = CEPlayerMark;
-    _yEmptyCells--;
+    _iEmptyCells--;
 }
 
 
 bool Grid::isValidPlay(uint8_t yPlayRow, uint8_t yPlayColumn) const noexcept
 { 
-    return (_yEmptyCells != 0 && yPlayRow >= 0 && yPlayRow < _a2PlayerMarkCells.size() &&
+    return (_iEmptyCells != 0 && yPlayRow >= 0 && yPlayRow < _a2PlayerMarkCells.size() &&
         yPlayColumn >= 0 && yPlayColumn < _a2PlayerMarkCells[0].size() &&
         _a2PlayerMarkCells[yPlayRow][yPlayColumn] == Grid::PlayerMark::GRID_TYPE_NONE); 
 }
 
 
-int32_t Grid::endResult() const noexcept
+Grid::PlayerMark Grid::endResult() const noexcept
 {
-    return 0; // TO DO
+    for (uint8_t i = 0; i < _a2PlayerMarkCells.size(); i++)
+    {
+        for (uint8_t j = 0; j < _a2PlayerMarkCells[0].size(); j++)
+        {
+            if (_a2PlayerMarkCells[i][j] != PlayerMark::GRID_TYPE_NONE)
+            {
+                // Vertical check
+                if (i <= _a2PlayerMarkCells.size() - _yMatchNumber &&
+                    (i == 0 || _a2PlayerMarkCells[i - 1][j] != _a2PlayerMarkCells[i][j]))
+                {
+                    uint8_t yOffset = 1, yCounter = 1;
+                    while (yCounter < 4 && _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i + yOffset][j])
+                        yCounter++, yOffset++;
+                    if (yCounter == 4) return _a2PlayerMarkCells[i][j];
+                }
+                // Horizontal check
+                if (j <= _a2PlayerMarkCells[0].size() - _yMatchNumber && 
+                    (j == 0 || _a2PlayerMarkCells[i][j - 1] != _a2PlayerMarkCells[i][j]))
+                {
+                    uint8_t yOffset = 1, yCounter = 1;
+                    while (yCounter < 4 && _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i][j + yOffset])
+                        yCounter++, yOffset++;
+                    if (yCounter == 4) return _a2PlayerMarkCells[i][j];
+                }
+                // Diagonal left check
+                if (i <= _a2PlayerMarkCells.size() - _yMatchNumber && j >= _yMatchNumber &&
+                    (i == 0 || j == _a2PlayerMarkCells[0].size() - 1 || 
+                    _a2PlayerMarkCells[i - 1][j + 1] != _a2PlayerMarkCells[i][j]))
+                {
+                    uint8_t yOffset = 1, yCounter = 1;
+                    while (yCounter < 4 && 
+                        _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i + yOffset][j - yOffset])
+                        yCounter++, yOffset++;
+                    if (yCounter == 4) return _a2PlayerMarkCells[i][j];
+                }
+                // Diagonal right check
+                if (i <= _a2PlayerMarkCells.size() - _yMatchNumber && 
+                    j <= _a2PlayerMarkCells[0].size() - _yMatchNumber &&
+                    (i == 0 || j == 0 || _a2PlayerMarkCells[i - 1][j - 1] != _a2PlayerMarkCells[i][j]))
+                {
+                    uint8_t yOffset = 1, yCounter = 1;
+                    while (yCounter < 4 && 
+                        _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i + yOffset][j + yOffset])
+                        yCounter++, yOffset++;
+                    if (yCounter == 4) return _a2PlayerMarkCells[i][j];
+                }
+            }
+        }
+    }
+    return PlayerMark::GRID_TYPE_NONE;
 }
 
 

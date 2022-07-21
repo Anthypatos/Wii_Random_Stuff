@@ -16,10 +16,11 @@ class Grid
         uint8_t getHeight() const noexcept;
         uint8_t getWidth() const noexcept;
         int32_t getEmptyCells() const noexcept;
+        uint8_t getMatchNumber() const noexcept;
         const std::vector<std::vector<PlayerMark>>& getCells() const noexcept;
 
         Grid() = default;
-        explicit Grid(uint8_t yHeight, uint8_t yWidth);
+        explicit Grid(uint8_t yHeight, uint8_t yWidth, uint8_t yMatchNumber);
 
         static PlayerMark nextPlayer(const PlayerMark& CEPlayerMark) noexcept;
 
@@ -28,18 +29,22 @@ class Grid
 
         void makePlay(const PlayerMark& CEPlayerMark, uint8_t yPlayRow, uint8_t yPlayColumn);
         bool isValidPlay(uint8_t yPlayRow, uint8_t yPlayColumn) const noexcept;
-        int32_t endResult() const noexcept;
+        PlayerMark endResult() const noexcept;
 
     private:
-        int32_t _yEmptyCells;
+        int32_t _iEmptyCells;
+        uint8_t _yMatchNumber;
         std::vector<std::vector<PlayerMark> > _a2PlayerMarkCells;
 
+        void checkCell(uint8_t yRow, uint8_t yColumn) const noexcept;
+        PlayerMark checkCell_Rec(uint8_t yRow, uint8_t yColumn, uint8_t yCounter) const noexcept;
 };
 
 
 inline uint8_t Grid::getHeight() const noexcept { return _a2PlayerMarkCells.size(); }
 inline uint8_t Grid::getWidth() const noexcept { return _a2PlayerMarkCells[0].size(); }
-inline int32_t Grid::getEmptyCells() const noexcept { return _yEmptyCells; }
+inline int32_t Grid::getEmptyCells() const noexcept { return _iEmptyCells; }
+inline uint8_t Grid::getMatchNumber() const noexcept { return _yMatchNumber; }
 inline const std::vector<std::vector<Grid::PlayerMark>>& Grid::getCells() const noexcept 
 { return _a2PlayerMarkCells; }
 

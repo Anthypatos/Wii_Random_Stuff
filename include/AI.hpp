@@ -21,7 +21,10 @@ class AI
     private:
         static uint8_t SEARCH_LIMIT;
 
-        AI() = default;
+        AI() = delete;
+
+        static uint8_t playerMark2Heuristic(const Grid::PlayerMark& CEPlayerMarkOwn, const Grid& CGrid,
+            uint8_t yRow, uint8_t yColumn) noexcept;
 };
 
 
