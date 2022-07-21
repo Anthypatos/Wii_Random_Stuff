@@ -208,8 +208,8 @@ JPEG::~JPEG() noexcept
  * @param fX the coordinate X of the top left corner of the image on the canvas
  * @param fY the coordinate Y of the top left corner of the image on the canvas
  */
-void JPEG::display(void* pXfb, const GXRModeObj* CpGXRmode, f32 fOriginalWidth, f32 fOriginalHeight, 
-	f32 fX, f32 fY)
+void JPEG::display(void* pXfb, const GXRModeObj* CpGXRmode, float fOriginalWidth, float fOriginalHeight, 
+	float fX, float fY)
 {
 	if (fOriginalWidth <= 0 || fOriginalHeight <= 0) throw std::domain_error("Invalid dimensions");
 

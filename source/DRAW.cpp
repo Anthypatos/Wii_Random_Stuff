@@ -26,8 +26,8 @@
  * @param fY the coordinate Y of the line
  * @param iColor the color of the line
  */
-void DRAW_horizontalLine(void* pXfb, const GXRModeObj* CpGXRmode, f32 fOriginalWidth, f32 fOriginalHeight, 
-	f32 fX1, f32 fX2, f32 fY, uint32_t iColor)
+void DRAW_horizontalLine(void* pXfb, const GXRModeObj* CpGXRmode, 
+	float fOriginalWidth, float fOriginalHeight, float fX1, float fX2, float fY, uint32_t iColor)
 {
 	if (fOriginalWidth <= 0 || fOriginalHeight <= 0) throw std::domain_error("Invalid dimensions");
 
@@ -60,8 +60,8 @@ void DRAW_horizontalLine(void* pXfb, const GXRModeObj* CpGXRmode, f32 fOriginalW
  * @param fY2 the lower coordinate Y of the line
  * @param iColor the color of the line
  */
-void DRAW_verticalLine(void* pXfb, const GXRModeObj* CpGXRmode, f32 fOriginalWidth, f32 fOriginalHeight,
-	f32 fX, f32 fY1, f32 fY2, uint32_t iColor)
+void DRAW_verticalLine(void* pXfb, const GXRModeObj* CpGXRmode, 
+	float fOriginalWidth, float fOriginalHeight, float fX, float fY1, float fY2, uint32_t iColor)
 {
 	if (fOriginalWidth <= 0 || fOriginalHeight <= 0) throw std::domain_error("Invalid dimensions");
 	
@@ -95,8 +95,8 @@ void DRAW_verticalLine(void* pXfb, const GXRModeObj* CpGXRmode, f32 fOriginalWid
  * @param fY2 the coordinate Y of the bottom left corner of the square
  * @param iColor the color of the square's edges
  */
-void DRAW_box(void* pXfb, const GXRModeObj* CpGXRmode, f32 fOriginalWidth, f32 fOriginalHeight,
-	f32 fX1, f32 fY1, f32 fX2, f32 fY2, uint32_t iColor)
+void DRAW_box(void* pXfb, const GXRModeObj* CpGXRmode, float fOriginalWidth, float fOriginalHeight,
+	float fX1, float fY1, float fX2, float fY2, uint32_t iColor)
 {
 	DRAW_horizontalLine(pXfb, CpGXRmode, fOriginalWidth, fOriginalHeight, fX1, fX2, fY1, iColor);
 	DRAW_horizontalLine(pXfb, CpGXRmode, fOriginalWidth, fOriginalHeight, fX1, fX2, fY2, iColor);
@@ -118,11 +118,11 @@ void DRAW_box(void* pXfb, const GXRModeObj* CpGXRmode, f32 fOriginalWidth, f32 f
  * @param fY2 the coordinate Y of the bottom left corner of the square
  * @param iColor the color of the square's edges
  */
-void DRAW_dot(void* pXfb, const GXRModeObj* CpGXRmode, f32 fOriginalWidth, f32 fOriginalHeight,
-	f32 fX1, f32 fY1, f32 fX2, f32 fY2, uint32_t iColor)
+void DRAW_dot(void* pXfb, const GXRModeObj* CpGXRmode, float fOriginalWidth, float fOriginalHeight,
+	float fX1, float fY1, float fX2, float fY2, uint32_t iColor)
 {
-	f32 fIncrement = fOriginalHeight / CpGXRmode->xfbHeight;
+	float fIncrement = fOriginalHeight / CpGXRmode->xfbHeight;
 
-	for (f32 i = fY1; i <= fY2; i += fIncrement)
+	for (float i = fY1; i <= fY2; i += fIncrement)
 		DRAW_horizontalLine(pXfb, CpGXRmode, fOriginalWidth, fOriginalHeight, fX1, fX2, i, iColor);
 }

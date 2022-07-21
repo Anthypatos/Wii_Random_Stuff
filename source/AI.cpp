@@ -15,9 +15,9 @@ void AI::ab_pruning(Grid& grid) const noexcept
     int32_t iAlpha = INT_MIN, iBeta = INT_MAX, iDepth = 1, iBestPlayRow = 0, iBestPlayColumn = 0, 
         iValue = 0;
 
-    for (uint8_t i = 0; i < grid.getWidth(); i++)
+    for (uint8_t i = 0; i < grid.getHeight(); i++)
     {
-        for (uint8_t j = 0; j < grid.getHeight(); j++)
+        for (uint8_t j = 0; j < grid.getWidth(); j++)
         {
             if (grid.isValidPlay(i, j))
             {
@@ -50,9 +50,9 @@ int32_t AI::ab_minValue(const Grid& CGrid, const Grid::PlayerMark& CEPlayerMark,
     else if (iDepth == _ySearchLimit) return AI::heuristic(CGrid);
     else
     {
-        for (uint8_t i = 0; i < CGrid.getWidth() && iAlpha < iBeta; i++)
+        for (uint8_t i = 0; i < CGrid.getHeight() && iAlpha < iBeta; i++)
         {
-            for (uint8_t j = 0; j < CGrid.getHeight() && iAlpha < iBeta; j++)
+            for (uint8_t j = 0; j < CGrid.getWidth() && iAlpha < iBeta; j++)
             {
                 if (CGrid.isValidPlay(i, j))
                 {
@@ -78,9 +78,9 @@ int32_t AI::ab_maxValue(const Grid& CGrid, const Grid::PlayerMark& CEPlayerMark,
     else if (iDepth == _ySearchLimit) return AI::heuristic(CGrid);
     else
     {
-        for (uint8_t i = 0; i < CGrid.getWidth() && iAlpha < iBeta; i++)
+        for (uint8_t i = 0; i < CGrid.getHeight() && iAlpha < iBeta; i++)
         {
-            for (uint8_t j = 0; j < CGrid.getHeight() && iAlpha < iBeta; j++)
+            for (uint8_t j = 0; j < CGrid.getWidth() && iAlpha < iBeta; j++)
             {
                 if (CGrid.isValidPlay(i, j))
                 {

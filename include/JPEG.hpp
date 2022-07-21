@@ -60,8 +60,8 @@ public:
      * @param fX the coordinate X of the top left corner of the image on the canvas
      * @param fY the coordinate Y of the top left corner of the image on the canvas
      */
-    void display(void* pXfb, const GXRModeObj* CpGXRmode, f32 fOriginalWidth, f32 fOriginalHeight, 
-        f32 fX, f32 fY);
+    void display(void* pXfb, const GXRModeObj* CpGXRmode, float fOriginalWidth, float fOriginalHeight, 
+        float fX, float fY);
 
 private:
     int32_t _iWidth;            /**< Width of the image in pixels */
