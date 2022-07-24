@@ -5,8 +5,9 @@
 #include <SDL_video.h>
 #include <SDL_events.h>
 #include <SDL_stdinc.h>
-#include "../include/CEvent.hpp"
+#include "CEvent.hpp"
 #include "Grid.hpp"
+#include "players/Player.hpp"
 
 
 class CApp : public CEvent
@@ -16,7 +17,6 @@ class CApp : public CEvent
 
         static const Uint16 SCrWindowWidth = 640;
         static const Uint16 SCrWindowHeight = 480;
-        static Uint8 SyJoysticks;
 
         static CApp* getInstance();
 
@@ -45,6 +45,8 @@ class CApp : public CEvent
         static CApp* _SpCAppInstance; 
 
         bool _bRunning;
+        State_t _ECurrentState;
+        
         SDL_Surface* _pSdlSurfaceDisplay;
         SDL_Surface* _pSdlSurfaceStart;
         SDL_Surface* _pSdlSurfaceGrid;
@@ -55,7 +57,7 @@ class CApp : public CEvent
 
         Grid _grid;
         Grid::PlayerMark _EplayerMarkCurrent;
-        State_t _ECurrentState;
+        Player* _apPlayer;
 
         CApp() noexcept;
 };

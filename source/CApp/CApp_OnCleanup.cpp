@@ -11,6 +11,9 @@ void CApp::OnCleanup() const noexcept
     SDL_FreeSurface(_pSdlSurfaceYellow);
     SDL_FreeSurface(_pSdlSurfaceWinRed);
     SDL_FreeSurface(_pSdlSurfaceWinYellow);
+    
+    delete[] _apPlayer;
+
     SDL_Quit(); 
 
     /*for(uint8_t i = 0; i < JOYNUMS; i++) SDL_JoystickClose(joysticks[i]);	//Close each joysticks*/

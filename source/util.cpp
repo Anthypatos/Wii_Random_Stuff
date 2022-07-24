@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <cstdlib>
 
 #include <ogc/color.h>
 #include <ogc/gx_struct.h>
@@ -9,6 +10,12 @@
 #include <SDL_video.h>
 #include <SDL_joystick.h>
 #include <SDL_events.h>
+
+#ifdef HW_RVL
+	#include <ogc/gx_struct.h>
+	#include <ogc/video_types.h>
+	#include <ogc/consol.h>
+#endif
 
 #include "../include/util.hpp"
 #include "../include/DRAW.hpp"
@@ -35,7 +42,7 @@ void print_wiimote_data(void* pXfb, const GXRModeObj* CpGXRmode, WPADData* pWPAD
 	// ir.valid - TRUE is the wiimote is pointing at the screen, else it is false
 	if(pWPADData->ir.valid) 
 	{
-		//float theta = pWPADData->ir.angle / 180.0 * M_PI;
+		//float fTheta = pWPADData->ir.angle / 180.0 * M_PI;
 	
 		// ir.x/ir.y - The x/y coordinates that the wiimote is pointing to, relative to the screen.
 		// ir.angle - how far (in degrees) the wiimote is twisted (based on ir)
@@ -45,9 +52,9 @@ void print_wiimote_data(void* pXfb, const GXRModeObj* CpGXRmode, WPADData* pWPAD
 		
 		DRAW_dot(pXfb, CpGXRmode, CpGXRmode->fbWidth, CpGXRmode->xfbHeight, pWPADData->ir.x - 2, 
             pWPADData->ir.y - 2, pWPADData->ir.x + 2, pWPADData->ir.y + 2, COLOR_RED);
-		/*DRAW_dot(xfb, rmode, rmode->fbWidth, rmode->xfbHeight, pWPADData->ir.x - 2 + 10 * sinf(theta), 
-			pWPADData->ir.y - 2 - 10 * cosf(theta), pWPADData->ir.x + 2 + 10 * sinf(theta), 
-			pWPADData->ir.y + 2 - 10 * cosf(theta), COLOR_BLUE);*/
+		/*DRAW_dot(xfb, rmode, rmode->fbWidth, rmode->xfbHeight, pWPADData->ir.x - 2 + 10 * sinf(fTheta), 
+			pWPADData->ir.y - 2 - 10 * cosf(fTheta), pWPADData->ir.x + 2 + 10 * sinf(fTheta), 
+			pWPADData->ir.y + 2 - 10 * cosf(fTheta), COLOR_BLUE);*/
 	} 
 	else std::cout << "No Cursor" << std::endl << std::endl;
 	
@@ -82,9 +89,15 @@ void print_wiimote_data(void* pXfb, const GXRModeObj* CpGXRmode, WPADData* pWPAD
 }
 
 
-void state_in_game(SDL_Surface* pSDLSurfaceScreen, SDL_Joystick** joysticks)
+void state_in_game(SDL_Surface* pSdlSurfaceScreen, SDL_Joystick** joysticks)
 {
-	SDL_FillRect(pSDLSurfaceScreen, nullptr, SDL_MapRGB(pSDLSurfaceScreen->format, 35, 75, 0));
+	SDL_FillRect(pSdlSurfaceScreen, nullptr, SDL_MapRGB(pSdlSurfaceScreen->format, 35, 75, 0));
+
+	#ifdef HW_RVL
+		CON_Init(pSdlSurfaceScreen->pixels, 20, 20, pSdlSurfaceScreen->w, pSdlSurfaceScreen->h, 
+			pSdlSurfaceScreen->w * VI_DISPLAY_PIX_SZ);
+		std::cout << "\x1b[2;0H";
+	#endif
 	
 	// Joysticks' properties can be fetched
 	for (uint8_t i = 0; i < JOYNUMS; i++)
@@ -143,7 +156,7 @@ void state_in_game(SDL_Surface* pSDLSurfaceScreen, SDL_Joystick** joysticks)
 				break;
 
 			case SDL_QUIT:
-				SDL_FillRect(pSDLSurfaceScreen, 0, SDL_MapRGB(pSDLSurfaceScreen->format, 0, 0, 0));
+				SDL_FillRect(pSdlSurfaceScreen, 0, SDL_MapRGB(pSdlSurfaceScreen->format, 0, 0, 0));
 				exit(EXIT_SUCCESS);
 				break;
 		}
@@ -151,7 +164,7 @@ void state_in_game(SDL_Surface* pSDLSurfaceScreen, SDL_Joystick** joysticks)
 	
 	std::cout << "IR X " << SDLEvent.motion.x << " IR Y " << SDLEvent.motion.y << std::endl <<
 		"JOYAXISMOTION OF PAD " << SDLEvent.jaxis.which << std::endl << "AXIS " << 
-		SDLEvent.jaxis.axis << std::endl << "VALUE " << SDLEvent.jaxis.value;
+		SDLEvent.jaxis.axis << std::endl << "VALUE " << SDLEvent.jaxis.value << std::endl;
 	
 	// The hat reports the directional PAD's status 
 	for (uint8_t i = 0; i < JOYNUMS; i++)

@@ -1,9 +1,9 @@
 #include <climits>
 #include <algorithm>
 #include <cstdint>
-#include "../include/AI.hpp"
-#include "../include/Player.hpp"
-#include "../include/Grid.hpp"
+#include "../../include/players/AI.hpp"
+#include "../../include/players/Player.hpp"
+#include "../../include/Grid.hpp"
 
 
 void AI::ab_pruning(Grid& grid) const noexcept

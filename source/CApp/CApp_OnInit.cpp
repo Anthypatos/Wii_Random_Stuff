@@ -16,10 +16,6 @@
 #include "../../include/CSurface.hpp"
 
 
-Uint8 CApp::SyJoysticks = 4;
-//SDL_Joystick* joysticks[JOYNUMS];
-
-
 void CApp::OnInit()
 {
     Uint32 iInitFlags = SDL_INIT_EVERYTHING;
@@ -36,7 +32,7 @@ void CApp::OnInit()
         SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN)) == nullptr) 
         throw std::runtime_error(std::string("Unable to set video: ") + SDL_GetError());
 
-    SDL_JoystickOpen(0);
+    _apPlayer = new Player(Grid::PlayerMark::GRID_TYPE_RED);
     SDL_JoystickEventState(SDL_ENABLE);
 
     try 
@@ -52,10 +48,8 @@ void CApp::OnInit()
 
     CSurface::Transparent(_pSdlSurfaceRed, 255, 0, 255);
     CSurface::Transparent(_pSdlSurfaceYellow, 255, 0, 255);
-	
-	/*for(uint8_t i = 0; i < JOYNUMS; i++) joysticks[i] = SDL_JoystickOpen(i);		//Open each joystick
 
-	SDL_WM_SetCaption("Joytest", nullptr);
+	/*SDL_WM_SetCaption("Joytest", nullptr);
     SDL_ShowCursor(SDL_DISABLE);
  
     // Make sure SDL cleans up before exit

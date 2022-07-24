@@ -11,7 +11,8 @@ class AI : public Player
     public:
         uint8_t getSearchLimit() const noexcept;
 
-        explicit AI(const Grid::PlayerMark& CEplayerMark, uint8_t ySearchLimit = CHAR_MAX) noexcept;
+        explicit AI(const Grid::PlayerMark& CEplayerMark = Grid::PlayerMark::GRID_TYPE_NONE, 
+            uint8_t ySearchLimit = CHAR_MAX) noexcept;
 
         void ab_pruning(Grid& grid) const noexcept;
 

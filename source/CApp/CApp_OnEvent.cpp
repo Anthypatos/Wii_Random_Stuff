@@ -27,7 +27,12 @@ void CApp::OnJoyButtonDown(Uint8 yWhich, Uint8 yButton) noexcept
                     Sint32 iMouseX = 0, iMouseY = 0;
                     SDL_GetMouseState(&iMouseX, &iMouseY);
 
-                    // if (coordenadas en el boton) _EcurrentState = State_t::STATE_INGAME;
+                    // if (coordenadas en el boton) 
+                    //     _EcurrentState = State_t::STATE_INGAME;
+                    //     delete[] _apPlayer;
+                    //     _apPlayer = new Player[2];
+                    //     for (Uint8 i = 0; i < SDL_NumJoysticks(); i++) _apPlayer[i].setPlayerMark(...);
+                    // endif
 
                     break;
                 }
@@ -38,28 +43,31 @@ void CApp::OnJoyButtonDown(Uint8 yWhich, Uint8 yButton) noexcept
         }
         case State_t::STATE_INGAME:
         {
-            switch (yButton)
+            if (_apPlayer[yWhich].getPlayerMark() == _EplayerMarkCurrent)
             {
-                case 0:
+                switch (yButton)
                 {
-                    Sint32 iMouseX = 0, iMouseY = 0;
-                    SDL_GetMouseState(&iMouseX, &iMouseY);
-                    Sint32 iColumn = iMouseX / (_pSdlSurfaceDisplay->w / Grid::SCyWidth);
-            
-                    if (_grid.isValidPlay(iColumn))
+                    case 0:
                     {
-                        _grid.makePlay(_EplayerMarkCurrent, iColumn);
-                        if (_grid.checkWinner() == Grid::PlayerMark::GRID_TYPE_NONE) 
-                            _EplayerMarkCurrent = Grid::nextPlayer(_EplayerMarkCurrent);
-                        else _ECurrentState = State_t::STATE_WIN;
+                        Sint32 iMouseX = 0, iMouseY = 0;
+                        SDL_GetMouseState(&iMouseX, &iMouseY);
+                        Sint32 iColumn = iMouseX / (_pSdlSurfaceDisplay->w / Grid::SCyWidth);
+                
+                        if (_grid.isValidPlay(iColumn))
+                        {
+                            _grid.makePlay(_EplayerMarkCurrent, iColumn);
+                            if (_grid.checkWinner() == Grid::PlayerMark::GRID_TYPE_NONE) 
+                                _EplayerMarkCurrent = Grid::nextPlayer(_EplayerMarkCurrent);
+                            else _ECurrentState = State_t::STATE_WIN;
+                        }
+
+                        break;
                     }
-
-                    break;
+                    case 6: _bRunning = false; break;
                 }
-                case 6: _bRunning = false; break;
-            }
 
-            break;
+                break;
+            }
         }
         case State_t::STATE_WIN:
         {
