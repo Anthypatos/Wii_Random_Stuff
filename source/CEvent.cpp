@@ -8,47 +8,6 @@ void CEvent::OnEvent(SDL_Event* pSdlEvent)
 {
     switch(pSdlEvent->type) 
     {
-        case SDL_ACTIVEEVENT: 
-        {
-            switch(pSdlEvent->active.state) 
-            {
-                case SDL_APPMOUSEFOCUS: 
-                {
-                    if (pSdlEvent->active.gain) OnMouseFocus();
-                    else OnMouseBlur();
- 
-                    break;
-                }
-                case SDL_APPINPUTFOCUS: 
-                {
-                    if (pSdlEvent->active.gain) OnInputFocus();
-                    else OnInputBlur();
-
-                    break;
-                }
-                case SDL_APPACTIVE: 
-                {
-                    if (pSdlEvent->active.gain) OnRestore();
-                    else OnMinimize();
- 
-                    break;
-                }
-            }
-            break;
-        }
- 
-        case SDL_KEYDOWN: 
-        {
-            OnKeyDown(pSdlEvent->key.keysym.sym, pSdlEvent->key.keysym.mod, pSdlEvent->key.keysym.unicode);
-            break;
-        }
- 
-        case SDL_KEYUP: 
-        {
-            OnKeyUp(pSdlEvent->key.keysym.sym, pSdlEvent->key.keysym.mod, pSdlEvent->key.keysym.unicode);
-            break;
-        }
- 
         case SDL_MOUSEMOTION: 
         {
             OnMouseMove(pSdlEvent->motion.x, pSdlEvent->motion.y, pSdlEvent->motion.xrel, 
@@ -57,63 +16,10 @@ void CEvent::OnEvent(SDL_Event* pSdlEvent)
                 (pSdlEvent->motion.state & SDL_BUTTON(SDL_BUTTON_MIDDLE)) != 0);
             break;
         }
- 
-        case SDL_MOUSEBUTTONDOWN: 
-        {
-            switch(pSdlEvent->button.button) 
-            {
-                case SDL_BUTTON_LEFT: 
-                {
-                    OnLButtonDown(pSdlEvent->button.x, pSdlEvent->button.y);
-                    break;
-                }
-                case SDL_BUTTON_RIGHT: 
-                {
-                    OnRButtonDown(pSdlEvent->button.x, pSdlEvent->button.y);
-                    break;
-                }
-                case SDL_BUTTON_MIDDLE: 
-                {
-                    OnMButtonDown(pSdlEvent->button.x, pSdlEvent->button.y);
-                    break;
-                }
-            }
-            break;
-        }
- 
-        case SDL_MOUSEBUTTONUP: 
-        {
-            switch(pSdlEvent->button.button) 
-            {
-                case SDL_BUTTON_LEFT: 
-                {
-                    OnLButtonUp(pSdlEvent->button.x,pSdlEvent->button.y);
-                    break;
-                }
-                case SDL_BUTTON_RIGHT: 
-                {
-                    OnRButtonUp(pSdlEvent->button.x,pSdlEvent->button.y);
-                    break;
-                }
-                case SDL_BUTTON_MIDDLE: 
-                {
-                    OnMButtonUp(pSdlEvent->button.x,pSdlEvent->button.y);
-                    break;
-                }
-            }
-            break;
-        }
- 
+        
         case SDL_JOYAXISMOTION: 
         {
             OnJoyAxis(pSdlEvent->jaxis.which, pSdlEvent->jaxis.axis, pSdlEvent->jaxis.value);
-            break;
-        }
- 
-        case SDL_JOYBALLMOTION: 
-        {
-            OnJoyBall(pSdlEvent->jball.which, pSdlEvent->jball.ball, pSdlEvent->jball.xrel,
-                pSdlEvent->jball.yrel);
             break;
         }
  
@@ -143,12 +49,6 @@ void CEvent::OnEvent(SDL_Event* pSdlEvent)
         case SDL_SYSWMEVENT: 
         {
             //Ignore
-            break;
-        }
- 
-        case SDL_VIDEORESIZE: 
-        {
-            OnResize(pSdlEvent->resize.w, pSdlEvent->resize.h);
             break;
         }
  

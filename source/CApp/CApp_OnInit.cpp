@@ -4,6 +4,8 @@
 
 #include <SDL.h>
 #include <SDL_video.h>
+#include <SDL_events.h>
+#include <SDL_joystick.h>
 #include <SDL_stdinc.h>
 
 #ifdef HW_RVL
@@ -20,22 +22,28 @@ Uint8 CApp::SyJoysticks = 4;
 
 void CApp::OnInit()
 {
+    Uint32 iInitFlags = SDL_INIT_EVERYTHING;
+
     #ifdef HW_RVL
 		fatInitDefault();
+        iInitFlags &= ~SDL_INIT_CDROM;
 	#endif
 
-    if(SDL_Init(SDL_INIT_EVERYTHING & ~SDL_INIT_CDROM) < 0) 
+    if(SDL_Init(iInitFlags) < 0) 
         throw std::runtime_error(std::string("Unable to init SDL: ") + SDL_GetError());
 
     if ((_pSdlSurfaceDisplay = SDL_SetVideoMode(CApp::SCrWindowWidth, CApp::SCrWindowHeight, 16, 
         SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN)) == nullptr) 
         throw std::runtime_error(std::string("Unable to set video: ") + SDL_GetError());
 
+    SDL_JoystickOpen(0);
+    SDL_JoystickEventState(SDL_ENABLE);
+
     try 
     { 
         _pSdlSurfaceGrid = CSurface::OnLoad("/apps/test/resources/gfx/grid.bmp");
-        _pSdlSurfaceX = CSurface::OnLoad("/apps/test/resources/gfx/x.bmp");
-        _pSdlSurfaceO = CSurface::OnLoad("/apps/test/resources/gfx/o.bmp");
+        _pSdlSurfaceX = CSurface::OnLoad("/apps/test/resources/gfx/red.bmp");
+        _pSdlSurfaceO = CSurface::OnLoad("/apps/test/resources/gfx/yellow.bmp");
     }
     catch (const std::ios_base::failure& Ciof) { throw; }
 

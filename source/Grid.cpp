@@ -6,15 +6,9 @@
 #include "../include/Grid.hpp"
 
 
-Grid::Grid(uint8_t yHeight, uint8_t yWidth, uint8_t yMatchNumber) : _iEmptyCells{yHeight * yWidth}, 
-    _yMatchNumber{yMatchNumber},
-    _a2PlayerMarkCells{yHeight, std::vector<PlayerMark>{yWidth, GRID_TYPE_NONE}} 
-{}
-
-
-Grid::PlayerMark Grid::nextPlayer(const PlayerMark& CEPlayerMark) noexcept
+Grid::PlayerMark Grid::nextPlayer(const PlayerMark& CEplayerMark) noexcept
 { 
-    switch(CEPlayerMark)
+    switch(CEplayerMark)
     {
         case PlayerMark::GRID_TYPE_O:       return PlayerMark::GRID_TYPE_X;     break;
         case PlayerMark::GRID_TYPE_X:       return PlayerMark::GRID_TYPE_O;     break;
@@ -23,77 +17,73 @@ Grid::PlayerMark Grid::nextPlayer(const PlayerMark& CEPlayerMark) noexcept
 }
 
 
-void Grid::makePlay(const PlayerMark& CEPlayerMark, uint8_t yPlayRow, uint8_t yPlayColumn)
+void Grid::makePlay(const PlayerMark& CEplayerMark, uint8_t yPlayColumn)
 {
-    if (!isValidPlay(yPlayRow, yPlayColumn)) throw std::domain_error("Play is not valid");
+    if (!isValidPlay(yPlayColumn)) throw std::domain_error("Play is not valid");
 
-    _a2PlayerMarkCells[yPlayRow][yPlayColumn] = CEPlayerMark;
-    _iEmptyCells--;
+    _a2playerMarkCells[_ayNextCell[yPlayColumn]][yPlayColumn] = CEplayerMark;
+    _ayNextCell[yPlayColumn]--;
 }
 
 
-bool Grid::isValidPlay(uint8_t yPlayRow, uint8_t yPlayColumn) const noexcept
+bool Grid::isValidPlay(uint8_t yPlayColumn) const noexcept
 { 
-    return (_iEmptyCells != 0 && yPlayRow >= 0 && yPlayRow < _a2PlayerMarkCells.size() &&
-        yPlayColumn >= 0 && yPlayColumn < _a2PlayerMarkCells[0].size() &&
-        _a2PlayerMarkCells[yPlayRow][yPlayColumn] == Grid::PlayerMark::GRID_TYPE_NONE); 
+    return (yPlayColumn >= 0 && yPlayColumn < Grid::SCyWidth &&
+        _ayNextCell[yPlayColumn] >= 0); 
 }
 
 
-Grid::PlayerMark Grid::endResult() const noexcept
+Grid::PlayerMark Grid::checkWinner() const noexcept
 {
-    for (uint8_t i = 0; i < _a2PlayerMarkCells.size(); i++)
+    for (uint8_t i = 0; i < Grid::SCyWidth; i++)
     {
-        for (uint8_t j = 0; j < _a2PlayerMarkCells[0].size(); j++)
+        for (uint8_t j = Grid::SCyHeight - 1; j > _ayNextCell[i]; j--)
         {
-            if (_a2PlayerMarkCells[i][j] != PlayerMark::GRID_TYPE_NONE)
+            // Vertical up check
+            if (j >= Grid::SCyNumberToMatch && (j == Grid::SCyHeight - 1 || 
+                _a2playerMarkCells[j + 1][i] != _a2playerMarkCells[j][i]))
             {
-                // Vertical check
-                if (i <= _a2PlayerMarkCells.size() - _yMatchNumber &&
-                    (i == 0 || _a2PlayerMarkCells[i - 1][j] != _a2PlayerMarkCells[i][j]))
-                {
-                    uint8_t yOffset = 1, yCounter = 1;
-                    while (yCounter < _yMatchNumber && 
-                        _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i + yOffset][j])
-                        yCounter++, yOffset++;
+                uint8_t yOffset = 1, yCounter = 1;
+                while (yCounter < Grid::SCyNumberToMatch && 
+                    _a2playerMarkCells[j][i] == _a2playerMarkCells[j - yOffset][i])
+                    yCounter++, yOffset++;
 
-                    if (yCounter == _yMatchNumber) return _a2PlayerMarkCells[i][j];
-                }
-                // Horizontal check
-                if (j <= _a2PlayerMarkCells[0].size() - _yMatchNumber && 
-                    (j == 0 || _a2PlayerMarkCells[i][j - 1] != _a2PlayerMarkCells[i][j]))
-                {
-                    uint8_t yOffset = 1, yCounter = 1;
-                    while (yCounter < _yMatchNumber && 
-                        _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i][j + yOffset])
-                        yCounter++, yOffset++;
+                if (yCounter == Grid::SCyNumberToMatch) return _a2playerMarkCells[j][i];
+            }
+            // Horizontal right check
+            if (i <= Grid::SCyWidth - Grid::SCyNumberToMatch && 
+                (i == 0 || _a2playerMarkCells[j][i - 1] != _a2playerMarkCells[j][i]))
+            {
+                uint8_t yOffset = 1, yCounter = 1;
+                while (yCounter < Grid::SCyNumberToMatch && 
+                    _a2playerMarkCells[j][i] == _a2playerMarkCells[j][i + yOffset])
+                    yCounter++, yOffset++;
 
-                    if (yCounter == _yMatchNumber) return _a2PlayerMarkCells[i][j];
-                }
-                // Diagonal left check
-                if (i <= _a2PlayerMarkCells.size() - _yMatchNumber && j >= _yMatchNumber &&
-                    (i == 0 || j == _a2PlayerMarkCells[0].size() - 1 || 
-                    _a2PlayerMarkCells[i - 1][j + 1] != _a2PlayerMarkCells[i][j]))
-                {
-                    uint8_t yOffset = 1, yCounter = 1;
-                    while (yCounter < _yMatchNumber && 
-                        _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i + yOffset][j - yOffset])
-                        yCounter++, yOffset++;
-                        
-                    if (yCounter == _yMatchNumber) return _a2PlayerMarkCells[i][j];
-                }
-                // Diagonal right check
-                if (i <= _a2PlayerMarkCells.size() - _yMatchNumber && 
-                    j <= _a2PlayerMarkCells[0].size() - _yMatchNumber &&
-                    (i == 0 || j == 0 || _a2PlayerMarkCells[i - 1][j - 1] != _a2PlayerMarkCells[i][j]))
-                {
-                    uint8_t yOffset = 1, yCounter = 1;
-                    while (yCounter < _yMatchNumber && 
-                        _a2PlayerMarkCells[i][j] == _a2PlayerMarkCells[i + yOffset][j + yOffset])
-                        yCounter++, yOffset++;
+                if (yCounter == Grid::SCyNumberToMatch) return _a2playerMarkCells[j][i];
+            }
+            // Diagonal up right check
+            if (j >= Grid::SCyNumberToMatch && i <= Grid::SCyWidth - Grid::SCyNumberToMatch &&
+                (j == Grid::SCyHeight - 1 || i == 0 || 
+                _a2playerMarkCells[j - 1][i - 1] != _a2playerMarkCells[j][i]))
+            {
+                uint8_t yOffset = 1, yCounter = 1;
+                while (yCounter < Grid::SCyNumberToMatch && 
+                    _a2playerMarkCells[j][i] == _a2playerMarkCells[j + yOffset][i + yOffset])
+                    yCounter++, yOffset++;
+                    
+                if (yCounter == Grid::SCyNumberToMatch) return _a2playerMarkCells[j][i];
+            }
+            // Diagonal down right check
+            if (j <= Grid::SCyHeight - Grid::SCyNumberToMatch && 
+                i <= Grid::SCyWidth - Grid::SCyNumberToMatch &&
+                (j == 0 || i == 0 || _a2playerMarkCells[j - 1][i - 1] != _a2playerMarkCells[j][i]))
+            {
+                uint8_t yOffset = 1, yCounter = 1;
+                while (yCounter < Grid::SCyNumberToMatch && 
+                    _a2playerMarkCells[j][i] == _a2playerMarkCells[j + yOffset][i + yOffset])
+                    yCounter++, yOffset++;
 
-                    if (yCounter == _yMatchNumber) return _a2PlayerMarkCells[i][j];
-                }
+                if (yCounter == Grid::SCyNumberToMatch) return _a2playerMarkCells[j][i];
             }
         }
     }
@@ -101,9 +91,9 @@ Grid::PlayerMark Grid::endResult() const noexcept
 }
 
 
-std::ostream& operator <<(std::ostream& ostream, const Grid::PlayerMark& CEPlayerMark) noexcept
+std::ostream& operator <<(std::ostream& ostream, const Grid::PlayerMark& CEplayerMark) noexcept
 {
-    switch(CEPlayerMark)
+    switch(CEplayerMark)
     {
         case Grid::PlayerMark::GRID_TYPE_NONE:  return ostream << ' '; break;
         case Grid::PlayerMark::GRID_TYPE_O:     return ostream << 'O'; break;
@@ -113,22 +103,21 @@ std::ostream& operator <<(std::ostream& ostream, const Grid::PlayerMark& CEPlaye
 }
 
 
-std::ostream& operator <<(std::ostream& ostream, const Grid& CGrid) noexcept
+std::ostream& operator <<(std::ostream& ostream, const Grid& Cgrid) noexcept
 {
-    const std::vector<std::vector<Grid::PlayerMark> > a2PlayerMarkCells = CGrid.getCells();
-    std::string sRowSeparator = "";
+    const std::vector<std::vector<Grid::PlayerMark> > a2playerMarkCells = Cgrid.getCells();
 
-    for (uint8_t i = 0; i < a2PlayerMarkCells[0].size(); i++) sRowSeparator += "---+";
-    sRowSeparator += "---";
-
-    for (uint8_t i = 0; i < a2PlayerMarkCells.size(); i++)
+    for (uint8_t i = 0; i < Grid::SCyHeight; i++)
     {
-        ostream << sRowSeparator << std::endl;
-        for (uint8_t j = 0; j < a2PlayerMarkCells[0].size(); j++)
-            ostream << "| " << a2PlayerMarkCells[i][j] << " ";
-        ostream << "|" << std::endl;
+        ostream << "---+---+---+---+---+---+---" << std::endl <<
+            " " << a2playerMarkCells[i][0] << " ";
+
+        for (uint8_t j = 1; j < Grid::SCyWidth; j++)
+            ostream << "| " << a2playerMarkCells[i][j] << " ";
+
+        ostream << std::endl;
     }
-    ostream << sRowSeparator;
+    ostream << "---+---+---+---+---+---+---" << std::endl;
 
     return ostream;
 }

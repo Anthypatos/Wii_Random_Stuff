@@ -8,16 +8,15 @@
 				
 */
 
-#include <iostream>
-#include <fstream>
+#include <cstdint>
 #include <string>
+#include <fstream>
 #include <cstring>
 #include <algorithm>
 #include <stdexcept>
 #include <ios>
 #include <new>
 #include <turbojpeg.h>
-#include <cstdint>
 #include <ogc/gx_struct.h>
 #include "../include/JPEG.hpp"
 
@@ -31,7 +30,7 @@ JPEG::JPEG(const std::string& CsFilePath) : _iWidth{0}, _iHeight{0}, _iPosX{0}, 
 	_piImgBuf{nullptr}
 {
 	uint8_t* pyJpegBuf = nullptr;	// In-memory buffer for the compressed image
-	u64 lJpegSize = 0;			// Size of the image in bytes
+	uint64_t lJpegSize = 0;			// Size of the image in bytes
 
 	/* Read the JPEG file into memory. */
 	std::ifstream fileJpeg(CsFilePath, std::ios_base::in | std::ios_base::binary | std::ios_base::ate);
@@ -59,13 +58,13 @@ JPEG::JPEG(const std::string& CsFilePath) : _iWidth{0}, _iHeight{0}, _iPosX{0}, 
  * @param CpyJpegBuf pointer to the buffer of the compressed image
  * @param lJpegSize the size of the image in bytes
  */
-JPEG::JPEG(const uint8_t* CpyJpegBuf, u64 lJpegSize) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _iPosY{0}, 
+JPEG::JPEG(const uint8_t* CpyJpegBuf, uint64_t lJpegSize) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _iPosY{0}, 
 	_piImgBuf{nullptr}
 {
 	tjhandle tjhandle = nullptr;	// Handle instance for the decompression
-	uint8_t* pyRgbBuf = nullptr;			// Buffer for the decompressed image
-	int32_t iInSubsamp = 0;
-	int32_t iInColorspace = 0;
+	uint8_t* pyRgbBuf = nullptr;	// Buffer for the decompressed image
+	int32_t iInSubsamp = 0;			// Subsample value of the input image
+	int32_t iInColorspace = 0;		// Colorspace of the input image
 
 	if ((tjhandle = tjInitDecompress()) == nullptr) 
 		throw std::runtime_error("Error initializing decompressor");
@@ -77,7 +76,7 @@ JPEG::JPEG(const uint8_t* CpyJpegBuf, u64 lJpegSize) : _iWidth{0}, _iHeight{0}, 
 		throw std::bad_alloc();
 
 	if (tjDecompress2(tjhandle, CpyJpegBuf, lJpegSize, pyRgbBuf, _iWidth, 0, _iHeight, TJPF_RGB, 0) < 0)
-		throw std::runtime_error("Error decompressing JPEG imagen");
+		throw std::runtime_error("Error decompressing JPEG image");
 
 	_piImgBuf = new uint32_t[_iHeight * (_iWidth >> 1)];	// Allocate space for the converted Y1CbY2Cr image
 
@@ -113,7 +112,7 @@ JPEG::JPEG(const uint8_t* CpyJpegBuf, u64 lJpegSize) : _iWidth{0}, _iHeight{0}, 
 JPEG::JPEG(const JPEG& CjpegOther) : _iWidth{CjpegOther._iWidth}, _iHeight{CjpegOther._iHeight},
 	_iPosX{CjpegOther._iPosX}, _iPosY{CjpegOther._iPosY}, 
 	_piImgBuf{new uint32_t[(_iWidth >> 1) * _iHeight]}
-{ memcpy(_piImgBuf, CjpegOther._piImgBuf, (_iWidth << 1) * _iHeight); }
+{ std::memcpy(_piImgBuf, CjpegOther._piImgBuf, (_iWidth << 1) * _iHeight); }
 
 
 /**
@@ -150,7 +149,7 @@ JPEG& JPEG::operator =(const JPEG& CjpegOther)
 		_iPosY = CjpegOther._iPosY;
 		_piImgBuf = new uint32_t[(_iWidth >> 1) * _iHeight];
 
-		memcpy(_piImgBuf, CjpegOther._piImgBuf, (_iWidth << 1) * _iHeight);
+		std::memcpy(_piImgBuf, CjpegOther._piImgBuf, (_iWidth << 1) * _iHeight);
 	}
 
 	return *this;
@@ -203,8 +202,8 @@ JPEG::~JPEG() noexcept
  * 
  * @param pXfb a pointer to the start of the XFB region
  * @param CpGXRmode a rendermode object holding the rendering parameters
- * @param fOriginalWidth the width of the canvas that is being drawn
- * @param fOriginalHeight the height of the canvas that is being drawn
+ * @param fOriginalWidth the width of the canvas that is being drawn. If unsure, set this to the framebuffer's width
+ * @param fOriginalHeight the height of the canvas that is being drawn. If unsure, set this to the framebuffer's height
  * @param fX the coordinate X of the top left corner of the image on the canvas
  * @param fY the coordinate Y of the top left corner of the image on the canvas
  */
@@ -232,11 +231,11 @@ void JPEG::display(void* pXfb, const GXRModeObj* CpGXRmode, float fOriginalWidth
 		else
 		{
 			if (iX < 0)	// If the X coordinate is to the left of the XFB copy the relevant part into it
-				memcpy(pFrameBuffer + (iY + i) * (CpGXRmode->fbWidth >> 1), 
+				std::memcpy(pFrameBuffer + (iY + i) * (CpGXRmode->fbWidth >> 1), 
 					_piImgBuf + i * (_iWidth >> 1) + (-iX), 
 					std::min(((_iWidth >> 1) + iX) << 2, CpGXRmode->fbWidth << 1));
 			else if (iX < CpGXRmode->fbWidth)	// If the X coordinate is inside the XFB copy the relevant part into it
-				memcpy(pFrameBuffer + (iY + i) * (CpGXRmode->fbWidth >> 1) + iX, 
+				std::memcpy(pFrameBuffer + (iY + i) * (CpGXRmode->fbWidth >> 1) + iX, 
 					_piImgBuf + i * (_iWidth >> 1), 
 					std::min(_iWidth << 1, ((CpGXRmode->fbWidth >> 1) - iX) << 2));
 		}
@@ -257,7 +256,6 @@ void JPEG::display(void* pXfb, const GXRModeObj* CpGXRmode, float fOriginalWidth
  */
 uint32_t JPEG::rgb2yuv (uint8_t yR1, uint8_t yG1, uint8_t yB1, uint8_t yR2, uint8_t yG2, uint8_t yB2) noexcept
 {
-//---------------------------------------------------------------------------------
 	int32_t iY1, iCb1, iCr1, iY2, iCb2, iCr2, iCb, iCr;
 
 	iY1 = (299 * yR1 + 587 * yG1 + 114 * yB1) / 1000;

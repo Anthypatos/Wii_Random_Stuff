@@ -19,8 +19,8 @@
  * 
  * @param pXfb a pointer to the start of the XFB region
  * @param CpGXRmode a rendermode object holding the rendering parameters
- * @param fOriginalWidth the width of the canvas that is being drawn
- * @param fOriginalHeight the height of the canvas that is being drawn
+ * @param fOriginalWidth the width of the canvas that is being drawn. If unsure, set this to the framebuffer's width
+ * @param fOriginalHeight the height of the canvas that is being drawn. If unsure, set this to the framebuffer's height
  * @param fX1 the left-hand coordinate X of the line
  * @param fX2 the right-hand coordinate X of the line
  * @param fY the coordinate Y of the line
@@ -34,8 +34,8 @@ void DRAW_horizontalLine(void* pXfb, const GXRModeObj* CpGXRmode,
  * 
  * @param xfb a pointer to the start of the XFB region
  * @param CpGXRmode a rendermode object holding the rendering parameters
- * @param fOriginalWidth the width of the canvas that is being drawn
- * @param fOriginalHeight the height of the canvas that is being drawn
+ * @param fOriginalWidth the width of the canvas that is being drawn. If unsure, set this to the framebuffer's width
+ * @param fOriginalHeight the height of the canvas that is being drawn. If unsure, set this to the framebuffer's height
  * @param fX the coordinate X of the line
  * @param fY1 the upper coordinate Y of the line
  * @param fY2 the lower coordinate Y of the line
@@ -49,8 +49,8 @@ void DRAW_verticalLine(void* pXfb, const GXRModeObj* CpGXRmode,
  * 
  * @param xfb a pointer to the start of the XFB region
  * @param CpGXRmode a rendermode object holding the rendering parameters
- * @param fOriginalWidth the width of the canvas that is being drawn
- * @param fOriginalHeight the height of the canvas that is being drawn
+ * @param fOriginalWidth the width of the canvas that is being drawn. If unsure, set this to the framebuffer's width
+ * @param fOriginalHeight the height of the canvas that is being drawn. If unsure, set this to the framebuffer's height
  * @param fX1 the coordinate X of the top left corner of the square
  * @param fY1 the coordinate Y of the top left corner of the square
  * @param fX2 the coordinate X of the top right corner of the square
@@ -66,8 +66,8 @@ void DRAW_box(void* pXfb, const GXRModeObj* CpGXRmode, float fOriginalWidth, flo
  * 
  * @param xfb a pointer to the start of the XFB region
  * @param CpGXRmode a rendermode object holding the rendering parameters
- * @param fOriginalWidth the width of the canvas that is being drawn
- * @param fOriginalHeight the height of the canvas that is being drawn
+ * @param fOriginalWidth the width of the canvas that is being drawn. If unsure, set this to the framebuffer's width
+ * @param fOriginalHeight the height of the canvas that is being drawn. If unsure, set this to the framebuffer's height
  * @param fX1 the coordinate X of the top left corner of the square
  * @param fY1 the coordinate Y of the top left corner of the square
  * @param fX2 the coordinate X of the top right corner of the square

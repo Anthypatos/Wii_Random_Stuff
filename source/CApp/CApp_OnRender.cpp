@@ -4,17 +4,17 @@
 #include "../../include/CSurface.hpp"
 
 
-void CApp::OnRender() 
+void CApp::OnRender()
 {
-    CSurface::OnDraw(_pSdlSurfaceDisplay, _pSdlSurfaceGrid, 0, 0);
+    //CSurface::OnDraw(_pSdlSurfaceDisplay, _pSdlSurfaceGrid, 0, 0);
 
-    for(Sint32 i = 0; i < _grid.getHeight(); i++) 
+    for(Sint32 i = 0; i < Grid::SCyHeight; i++) 
     {
-        Sint32 iY = i * (_pSdlSurfaceDisplay->h / _grid.getHeight());
+        Sint32 iY = i * (_pSdlSurfaceDisplay->h / Grid::SCyHeight);
 
-        for (Sint32 j = 0; j < _grid.getWidth(); j++)
+        for (Sint32 j = 0; j < Grid::SCyWidth; j++)
         {
-            Sint32 iX = j * (_pSdlSurfaceDisplay->w / _grid.getWidth());
+            Sint32 iX = j * (_pSdlSurfaceDisplay->w / Grid::SCyWidth);
 
             if(_grid[i][j] == Grid::PlayerMark::GRID_TYPE_X) 
                 CSurface::OnDraw(_pSdlSurfaceDisplay, _pSdlSurfaceX, iX, iY);

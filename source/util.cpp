@@ -88,9 +88,10 @@ void state_in_game(SDL_Surface* pSDLSurfaceScreen, SDL_Joystick** joysticks)
 	
 	// Joysticks' properties can be fetched
 	for (uint8_t i = 0; i < JOYNUMS; i++)
-		std::cout << "JOYPAD " << i << std::endl << "HAS " << SDL_JoystickNumAxes(joysticks[i]) <<
-			" AXES" << std::endl << "AND " << SDL_JoystickNumButtons(joysticks[i]) << " BUTTONS" << 
-			std::endl << "AND " << SDL_JoystickNumBalls(joysticks[i]) << " BALLS" << std::endl << 
+		std::cout << "JOYPAD " << i << std::endl << 
+			"HAS " << SDL_JoystickNumAxes(joysticks[i]) << " AXES" << std::endl << 
+			"AND " << SDL_JoystickNumButtons(joysticks[i]) << " BUTTONS" << std::endl << 
+			"AND " << SDL_JoystickNumBalls(joysticks[i]) << " BALLS" << std::endl << 
 			"AND " << SDL_JoystickNumHats(joysticks[i]) << " HATS";
 			
 	SDL_JoystickUpdate();	// Update joysticks' status
@@ -98,8 +99,6 @@ void state_in_game(SDL_Surface* pSDLSurfaceScreen, SDL_Joystick** joysticks)
 	SDL_Event SDLEvent;
 	while (SDL_PollEvent(&SDLEvent))
 	{
-		std::string sButtonState = (SDLEvent.jbutton.state == SDL_PRESSED) ? "PRESSED" : "RELEASED";
-
 		// Checking button status is almost like handling keyboard events, use SDL_JOYBUTTONDOWN and 
 		// SDL_JOYBUTTONUP
 		switch (SDLEvent.type)
@@ -120,11 +119,8 @@ void state_in_game(SDL_Surface* pSDLSurfaceScreen, SDL_Joystick** joysticks)
 					case 8:	std::cout << "C "; 		break;
 					default: 						break;
 				}
-
-				if (SDLEvent.type == SDL_JOYBUTTONDOWN) std::cout << "DOWN";
-				else std::cout << "UP";
-
-				std::cout << " AND " << sButtonState;
+				std::cout << (SDLEvent.type == SDL_JOYBUTTONDOWN ? "DOWN" : "UP") << " AND " << 
+					(SDLEvent.jbutton.state == SDL_PRESSED ? "PRESSED" : "RELEASED");
 
 				break;
 			
@@ -153,8 +149,8 @@ void state_in_game(SDL_Surface* pSDLSurfaceScreen, SDL_Joystick** joysticks)
 		}
 	}	// End of event pool
 	
-	std::cout << "IR X " << SDLEvent.motion.x << " IR Y " << SDLEvent.motion.y << std::endl;
-	std::cout << "JOYAXISMOTION OF PAD " << SDLEvent.jaxis.which << std::endl << "AXIS " << 
+	std::cout << "IR X " << SDLEvent.motion.x << " IR Y " << SDLEvent.motion.y << std::endl <<
+		"JOYAXISMOTION OF PAD " << SDLEvent.jaxis.which << std::endl << "AXIS " << 
 		SDLEvent.jaxis.axis << std::endl << "VALUE " << SDLEvent.jaxis.value;
 	
 	// The hat reports the directional PAD's status 
