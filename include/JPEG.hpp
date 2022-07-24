@@ -45,8 +45,8 @@ public:
     JPEG(JPEG&& jpegOther) noexcept;    /**< Movement constructor */
     ~JPEG() noexcept;                   /**< Destructor */
 
-    JPEG& operator =(const JPEG& CjpegOtro);        /**< Assign with copy operator */
-    JPEG& operator =(JPEG&& jpegOtro) noexcept;     /**< Assign with movement operator */
+    JPEG& operator =(const JPEG& CjpegOther);        /**< Assign with copy operator */
+    JPEG& operator =(JPEG&& jpegOther) noexcept;     /**< Assign with movement operator */
 
     /**
      * @brief Displays the JPEG on the XFB. Width or height of the image can be out

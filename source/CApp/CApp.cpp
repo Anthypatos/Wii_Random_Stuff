@@ -13,8 +13,9 @@ CApp* CApp::getInstance()
 
 
 CApp::CApp() noexcept : CEvent{}, _bRunning{true},  _pSdlSurfaceDisplay{nullptr}, 
-    _pSdlSurfaceGrid{nullptr}, _pSdlSurfaceX{nullptr}, _pSdlSurfaceO{nullptr}, _grid{}, 
-    _EPlayerMarkCurrent{Grid::PlayerMark::GRID_TYPE_O} {}
+    _pSdlSurfaceStart{nullptr}, _pSdlSurfaceGrid{nullptr}, _pSdlSurfaceRed{nullptr}, 
+    _pSdlSurfaceYellow{nullptr}, _pSdlSurfaceWinRed{nullptr}, _pSdlSurfaceWinYellow{nullptr}, _grid{}, 
+    _EplayerMarkCurrent{Grid::PlayerMark::GRID_TYPE_RED}, _ECurrentState{State_t::STATE_START} {}
 
 
 void CApp::OnExecute()
@@ -37,5 +38,7 @@ void CApp::OnExecute()
 
 void CApp::Reset() noexcept
 {
+    _ECurrentState = STATE_START;
     _grid = Grid{};
+    _EplayerMarkCurrent = Grid::PlayerMark::GRID_TYPE_RED;
 }

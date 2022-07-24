@@ -41,14 +41,17 @@ void CApp::OnInit()
 
     try 
     { 
+        _pSdlSurfaceStart = CSurface::OnLoad("/apps/test/resources/gfx/start.bmp");
         _pSdlSurfaceGrid = CSurface::OnLoad("/apps/test/resources/gfx/grid.bmp");
-        _pSdlSurfaceX = CSurface::OnLoad("/apps/test/resources/gfx/red.bmp");
-        _pSdlSurfaceO = CSurface::OnLoad("/apps/test/resources/gfx/yellow.bmp");
+        _pSdlSurfaceRed = CSurface::OnLoad("/apps/test/resources/gfx/red.bmp");
+        _pSdlSurfaceYellow = CSurface::OnLoad("/apps/test/resources/gfx/yellow.bmp");
+        _pSdlSurfaceWinRed = CSurface::OnLoad("/apps/test/resources/gfx/winRed.bmp");
+        _pSdlSurfaceWinYellow = CSurface::OnLoad("/apps/test/resources/gfx/winYellow.bmp");
     }
     catch (const std::ios_base::failure& Ciof) { throw; }
 
-    CSurface::Transparent(_pSdlSurfaceX, 255, 0, 255);
-    CSurface::Transparent(_pSdlSurfaceO, 255, 0, 255);
+    CSurface::Transparent(_pSdlSurfaceRed, 255, 0, 255);
+    CSurface::Transparent(_pSdlSurfaceYellow, 255, 0, 255);
 	
 	/*for(uint8_t i = 0; i < JOYNUMS; i++) joysticks[i] = SDL_JoystickOpen(i);		//Open each joystick
 

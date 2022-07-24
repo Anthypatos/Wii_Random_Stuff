@@ -1,4 +1,5 @@
 #include <SDL_events.h>
+#include <SDL_mouse.h>
 #include <SDL_stdinc.h>
 #include "../../include/CApp.hpp"
 
@@ -15,23 +16,69 @@ void CApp::OnJoyAxis(Uint8 yWhich, Uint8 axis, Sint16 rValue) noexcept {}
 
 void CApp::OnJoyButtonDown(Uint8 yWhich, Uint8 yButton) noexcept
 {
-    switch (yButton)
+    switch (_ECurrentState)
     {
-        case 0:
+        case State_t::STATE_START:
         {
-            Sint32 iMouseX = 0, iMouseY = 0;
-            SDL_GetMouseState(&iMouseX, &iMouseY);
-            Sint32 iColumn = iMouseX / (_pSdlSurfaceDisplay->w / Grid::SCyWidth);
-    
-            if (_grid.isValidPlay(iColumn))
+            switch (yButton)
             {
-                _grid.makePlay(_EPlayerMarkCurrent, iColumn);
-                _EPlayerMarkCurrent = Grid::nextPlayer(_EPlayerMarkCurrent);
+                case 0:
+                {
+                    Sint32 iMouseX = 0, iMouseY = 0;
+                    SDL_GetMouseState(&iMouseX, &iMouseY);
+
+                    // if (coordenadas en el boton) _EcurrentState = State_t::STATE_INGAME;
+
+                    break;
+                }
+                case 6: _bRunning = false; break;
             }
 
             break;
         }
-        case 6: _bRunning = false; break;
+        case State_t::STATE_INGAME:
+        {
+            switch (yButton)
+            {
+                case 0:
+                {
+                    Sint32 iMouseX = 0, iMouseY = 0;
+                    SDL_GetMouseState(&iMouseX, &iMouseY);
+                    Sint32 iColumn = iMouseX / (_pSdlSurfaceDisplay->w / Grid::SCyWidth);
+            
+                    if (_grid.isValidPlay(iColumn))
+                    {
+                        _grid.makePlay(_EplayerMarkCurrent, iColumn);
+                        if (_grid.checkWinner() == Grid::PlayerMark::GRID_TYPE_NONE) 
+                            _EplayerMarkCurrent = Grid::nextPlayer(_EplayerMarkCurrent);
+                        else _ECurrentState = State_t::STATE_WIN;
+                    }
+
+                    break;
+                }
+                case 6: _bRunning = false; break;
+            }
+
+            break;
+        }
+        case State_t::STATE_WIN:
+        {
+            switch (yButton)
+            {
+                case 0:
+                {
+                    Sint32 iMouseX = 0, iMouseY = 0;
+                    SDL_GetMouseState(&iMouseX, &iMouseY);
+
+                    // if (coordenadas en el boton) Reset();
+
+                    break;
+                }
+                case 6: _bRunning = false; break;
+            }
+
+            break;
+        }
     }
 }
 

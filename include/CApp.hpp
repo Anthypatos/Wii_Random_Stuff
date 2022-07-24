@@ -12,6 +12,8 @@
 class CApp : public CEvent
 { 
     public:
+        enum State_t {STATE_START, STATE_INGAME, STATE_WIN};
+
         static const Uint16 SCrWindowWidth = 640;
         static const Uint16 SCrWindowHeight = 480;
         static Uint8 SyJoysticks;
@@ -44,12 +46,16 @@ class CApp : public CEvent
 
         bool _bRunning;
         SDL_Surface* _pSdlSurfaceDisplay;
+        SDL_Surface* _pSdlSurfaceStart;
         SDL_Surface* _pSdlSurfaceGrid;
-        SDL_Surface* _pSdlSurfaceX;
-        SDL_Surface* _pSdlSurfaceO;
+        SDL_Surface* _pSdlSurfaceRed;
+        SDL_Surface* _pSdlSurfaceYellow;
+        SDL_Surface* _pSdlSurfaceWinRed;
+        SDL_Surface* _pSdlSurfaceWinYellow;
 
         Grid _grid;
-        Grid::PlayerMark _EPlayerMarkCurrent;
+        Grid::PlayerMark _EplayerMarkCurrent;
+        State_t _ECurrentState;
 
         CApp() noexcept;
 };

@@ -10,9 +10,9 @@ Grid::PlayerMark Grid::nextPlayer(const PlayerMark& CEplayerMark) noexcept
 { 
     switch(CEplayerMark)
     {
-        case PlayerMark::GRID_TYPE_O:       return PlayerMark::GRID_TYPE_X;     break;
-        case PlayerMark::GRID_TYPE_X:       return PlayerMark::GRID_TYPE_O;     break;
-        default:                            return PlayerMark::GRID_TYPE_NONE;  break;
+        case PlayerMark::GRID_TYPE_YELLOW:  return PlayerMark::GRID_TYPE_RED;       break;
+        case PlayerMark::GRID_TYPE_RED:     return PlayerMark::GRID_TYPE_YELLOW;    break;
+        default:                            return PlayerMark::GRID_TYPE_NONE;      break;
     }
 }
 
@@ -95,10 +95,10 @@ std::ostream& operator <<(std::ostream& ostream, const Grid::PlayerMark& CEplaye
 {
     switch(CEplayerMark)
     {
-        case Grid::PlayerMark::GRID_TYPE_NONE:  return ostream << ' '; break;
-        case Grid::PlayerMark::GRID_TYPE_O:     return ostream << 'O'; break;
-        case Grid::PlayerMark::GRID_TYPE_X:     return ostream << 'X'; break;
-        default:                                return ostream << ' '; break;
+        case Grid::PlayerMark::GRID_TYPE_NONE:      return ostream << ' ';      break;
+        case Grid::PlayerMark::GRID_TYPE_YELLOW:    return ostream << 'Y';      break;
+        case Grid::PlayerMark::GRID_TYPE_RED:       return ostream << 'R';      break;
+        default:                                    return ostream << ' ';      break;
     }
 }
 

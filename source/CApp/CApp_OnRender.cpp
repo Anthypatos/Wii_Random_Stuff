@@ -6,20 +6,49 @@
 
 void CApp::OnRender()
 {
-    //CSurface::OnDraw(_pSdlSurfaceDisplay, _pSdlSurfaceGrid, 0, 0);
-
-    for(Sint32 i = 0; i < Grid::SCyHeight; i++) 
+    switch (_ECurrentState)
     {
-        Sint32 iY = i * (_pSdlSurfaceDisplay->h / Grid::SCyHeight);
-
-        for (Sint32 j = 0; j < Grid::SCyWidth; j++)
+        case State_t::STATE_START:
         {
-            Sint32 iX = j * (_pSdlSurfaceDisplay->w / Grid::SCyWidth);
+            CSurface::OnDraw(_pSdlSurfaceDisplay, _pSdlSurfaceStart, 0, 0);
 
-            if(_grid[i][j] == Grid::PlayerMark::GRID_TYPE_X) 
-                CSurface::OnDraw(_pSdlSurfaceDisplay, _pSdlSurfaceX, iX, iY);
-            else if(_grid[i][j] == Grid::PlayerMark::GRID_TYPE_O) 
-                CSurface::OnDraw(_pSdlSurfaceDisplay, _pSdlSurfaceO, iX, iY);
+            break;
+        }
+        case State_t::STATE_INGAME:
+        {
+            CSurface::OnDraw(_pSdlSurfaceDisplay, _pSdlSurfaceGrid, 0, 0);
+
+            for(Sint32 i = 0; i < Grid::SCyHeight; i++) 
+            {
+                Sint32 iY = i * (_pSdlSurfaceDisplay->h / Grid::SCyHeight);
+                
+                for (Sint32 j = 0; j < Grid::SCyWidth; j++)
+                {
+                    Sint32 iX = j * (_pSdlSurfaceDisplay->w / Grid::SCyWidth);
+
+                    if(_grid[i][j] == Grid::PlayerMark::GRID_TYPE_RED) 
+                        CSurface::OnDraw(_pSdlSurfaceDisplay, _pSdlSurfaceRed, iX, iY);
+                    else if(_grid[i][j] == Grid::PlayerMark::GRID_TYPE_YELLOW) 
+                        CSurface::OnDraw(_pSdlSurfaceDisplay, _pSdlSurfaceYellow, iX, iY);
+                }
+            }
+
+            break;
+        }
+        case State_t::STATE_WIN:
+        {
+            switch (_EplayerMarkCurrent)
+            {
+                case Grid::PlayerMark::GRID_TYPE_RED:
+                    CSurface::OnDraw(_pSdlSurfaceDisplay, _pSdlSurfaceWinRed, 0, 0);
+                    break;
+                case Grid::PlayerMark::GRID_TYPE_YELLOW:
+                    CSurface::OnDraw(_pSdlSurfaceDisplay, _pSdlSurfaceWinYellow, 0, 0);
+                    break;
+                default: Reset(); break;
+            }
+
+            break;
         }
     }
  
