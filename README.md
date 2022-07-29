@@ -13,8 +13,8 @@ This will (hopefully) be expanded in the future.
 
 # Compiling this project
 As of the date of writing this document, this project has been done using [devkitPPC r41](https://devkitpro.org/wiki/Getting_Started).
-Additionally, you will need the following packets:
- - ppc-libjpeg
+Additionally, you will need the following packages:
+ - ppc-libjpeg-turbo
  - ppc-jansson
  - wii-sdl-libs
  
