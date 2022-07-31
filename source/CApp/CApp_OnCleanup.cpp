@@ -3,7 +3,7 @@
 #include "../../include/CApp.hpp"
 
 
-void CApp::OnCleanup() const noexcept 
+void CApp::OnCleanup() noexcept 
 {
     SDL_FreeSurface(_pSdlSurfaceStart);
 	SDL_FreeSurface(_pSdlSurfaceGrid);
@@ -12,9 +12,7 @@ void CApp::OnCleanup() const noexcept
     SDL_FreeSurface(_pSdlSurfaceWinRed);
     SDL_FreeSurface(_pSdlSurfaceWinYellow);
     
-    delete[] _apPlayer;
+    for (std::vector<Player*>::iterator i = _apPlayer.begin(); i != _apPlayer.end(); ++i) delete *i;
 
-    SDL_Quit(); 
-
-    /*for(uint8_t i = 0; i < JOYNUMS; i++) SDL_JoystickClose(joysticks[i]);	//Close each joysticks*/
+    SDL_Quit();
 }

@@ -1,8 +1,8 @@
 #include <string>
 #include <ios>
 #include <stdexcept>
+#include <cstdint>
 #include <SDL_video.h>
-#include <SDL_stdinc.h>
 #include "../include/CSurface.hpp"
 
 
@@ -24,7 +24,7 @@ SDL_Surface* CSurface::OnLoad(const std::string& CsFilePath)
 
 
 void CSurface::OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc, 
-    Sint32 iDestX, Sint32 iDestY)
+    int32_t iDestX, int32_t iDestY)
 {
     if(pSdlSurfaceDest == nullptr || pSdlSurfaceSrc == nullptr) 
         throw std::invalid_argument("Surface is null");
@@ -41,7 +41,7 @@ void CSurface::OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc,
 
 
 void CSurface::OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc, 
-    Sint32 iDestX, Sint32 iDestY, Sint32 iSrcX, Sint32 iSrcY, Sint32 iSrcWidth, Sint32 iSrcHeight) 
+    int32_t iDestX, int32_t iDestY, int32_t iSrcX, int32_t iSrcY, int32_t iSrcWidth, int32_t iSrcHeight) 
 {
     if(pSdlSurfaceDest == nullptr || pSdlSurfaceSrc == nullptr) 
         throw std::invalid_argument("Surface is null");
@@ -62,7 +62,7 @@ void CSurface::OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc,
 }
 
 
-void CSurface::Transparent(SDL_Surface* pSdlSurfaceDest, Sint32 iRed, Sint32 iGreen, Sint32 iBlue) 
+void CSurface::Transparent(SDL_Surface* pSdlSurfaceDest, int32_t iRed, int32_t iGreen, int32_t iBlue) 
 {
     if(pSdlSurfaceDest == nullptr) throw std::invalid_argument("Surface is null");
  

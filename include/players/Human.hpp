@@ -1,9 +1,10 @@
-#ifndef HUMAN_HPP_
-#define HUMAN_HPP_
+#ifndef _HUMAN_HPP_
+#define _HUMAN_HPP_
 
+#include <cstdint>
 #include <SDL_joystick.h>
 #include "Player.hpp"
-#include "Grid.hpp"
+#include "../Grid.hpp"
 
 
 class Human : public Player
@@ -17,6 +18,8 @@ class Human : public Player
         virtual ~Human() noexcept;
 
     private:
+        static uint8_t _SyJoysticks;
+
         SDL_Joystick* _pSdlJoystick;
 
 };

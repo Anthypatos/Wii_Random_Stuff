@@ -11,28 +11,28 @@
 #ifndef PORTS_H_
 #define PORTS_H_
 
-#include <gctypes.h>
+#include <cstdint>
 #include <ogc/system.h>
 
 /// Registers - Broadway access
-#define HW_GPIOB_DIR		*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000c4)
-#define HW_GPIOB_OUT    	*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000c0)
-#define HW_GPIOB_IN     	*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000c8)
-#define HW_GPIOB_INTLVL		*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000cc)
-#define HW_GPIOB_INTFLAG	*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000d0)
-#define HW_GPIOB_INTMASK	*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000d4)
-#define HW_GPIOB_STRAPS		*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000d8)
+#define HW_GPIOB_DIR		*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000c4)
+#define HW_GPIOB_OUT    	*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000c0)
+#define HW_GPIOB_IN     	*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000c8)
+#define HW_GPIOB_INTLVL		*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000cc)
+#define HW_GPIOB_INTFLAG	*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000d0)
+#define HW_GPIOB_INTMASK	*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000d4)
+#define HW_GPIOB_STRAPS		*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000d8)
 
 // Registers - Starlet only - AHB required
-#define HW_GPIO_ENABLE		*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000dc) // Defaults to 0xFFFFFF
-#define HW_GPIO_OWNER    	*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000dc)	// Defaults to 0x00C3A0
-#define HW_GPIO_DIR			*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000e4) // Defaults to 0xFF5F3E
-#define HW_GPIO_OUT    		*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000e0)
-#define HW_GPIO_IN     		*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000e4)
-#define HW_GPIO_INTLVL		*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000ec)
-#define HW_GPIO_INTFLAG		*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000f0)
-#define HW_GPIO_INTMASK		*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000f4)
-#define HW_GPIO_STRAPS		*(vu32 *)MEM_PHYSICAL_TO_K1(0x0d8000f4)
+#define HW_GPIO_ENABLE		*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000dc) // Defaults to 0xFFFFFF
+#define HW_GPIO_OWNER    	*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000dc) // Defaults to 0x00C3A0
+#define HW_GPIO_DIR			*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000e4) // Defaults to 0xFF5F3E
+#define HW_GPIO_OUT    		*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000e0)
+#define HW_GPIO_IN     		*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000e4)
+#define HW_GPIO_INTLVL		*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000ec)
+#define HW_GPIO_INTFLAG		*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000f0)
+#define HW_GPIO_INTMASK		*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000f4)
+#define HW_GPIO_STRAPS		*(volatile uint32_t *)MEM_PHYSICAL_TO_K1(0x0d8000f4)
 
 // GPIO Output pins - Broadway access
 #define SLOT_LED    5

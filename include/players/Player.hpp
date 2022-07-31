@@ -1,7 +1,7 @@
-#ifndef PLAYER_HPP_
-#define PLAYER_HPP_
+#ifndef _PLAYER_HPP_
+#define _PLAYER_HPP_
 
-#include "Grid.hpp"
+#include "../Grid.hpp"
 
 
 class Player

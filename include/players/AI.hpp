@@ -1,9 +1,9 @@
-#ifndef AI_HPP_
-#define AI_HPP_
+#ifndef _AI_HPP_
+#define _AI_HPP_
 
 #include <cstdint>
 #include "Player.hpp"
-#include "Grid.hpp"
+#include "../Grid.hpp"
 
 
 class AI : public Player

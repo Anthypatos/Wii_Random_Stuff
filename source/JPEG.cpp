@@ -26,8 +26,8 @@
  * 
  * @param CsFilePath the path to the image in the filesystem
  */
-JPEG::JPEG(const std::string& CsFilePath) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _iPosY{0}, 
-	_piImgBuf{nullptr}
+JPEG::JPEG(const std::string& CsFilePath) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _iPosY{0},
+	_apiImgBuf{nullptr}
 {
 	uint8_t* pyJpegBuf = nullptr;	// In-memory buffer for the compressed image
 	uint64_t lJpegSize = 0;			// Size of the image in bytes
@@ -58,10 +58,10 @@ JPEG::JPEG(const std::string& CsFilePath) : _iWidth{0}, _iHeight{0}, _iPosX{0}, 
  * @param CpyJpegBuf pointer to the buffer of the compressed image
  * @param lJpegSize the size of the image in bytes
  */
-JPEG::JPEG(const uint8_t* CpyJpegBuf, uint64_t lJpegSize) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _iPosY{0}, 
-	_piImgBuf{nullptr}
+JPEG::JPEG(const uint8_t* CpyJpegBuf, uint64_t lJpegSize) : _iWidth{0}, _iHeight{0}, _iPosX{0}, _iPosY{0},
+	_apiImgBuf{nullptr}
 {
-	tjhandle tjhandle = nullptr;	// Handle instance for the decompression
+	tjhandle tjhandle;				// Handle instance for the decompression
 	uint8_t* pyRgbBuf = nullptr;	// Buffer for the decompressed image
 	int32_t iInSubsamp = 0;			// Subsample value of the input image
 	int32_t iInColorspace = 0;		// Colorspace of the input image
@@ -70,26 +70,26 @@ JPEG::JPEG(const uint8_t* CpyJpegBuf, uint64_t lJpegSize) : _iWidth{0}, _iHeight
 		throw std::runtime_error("Error initializing decompressor");
 
 	if (tjDecompressHeader3(tjhandle, CpyJpegBuf, lJpegSize, &_iWidth, &_iHeight, &iInSubsamp, 
-		&iInColorspace) < 0) throw std::runtime_error("Error reading JPEG header");
+		&iInColorspace) == -1) throw std::runtime_error(tjGetErrorStr());
 
-	if ((pyRgbBuf = tjAlloc(_iWidth * _iHeight * tjPixelSize[TJPF_RGB])) == nullptr)
+	if ((pyRgbBuf = tjAlloc(_iWidth * _iHeight * tjPixelSize[TJPF::TJPF_RGB])) == nullptr)
 		throw std::bad_alloc();
 
-	if (tjDecompress2(tjhandle, CpyJpegBuf, lJpegSize, pyRgbBuf, _iWidth, 0, _iHeight, TJPF_RGB, 0) < 0)
-		throw std::runtime_error("Error decompressing JPEG image");
+	if (tjDecompress2(tjhandle, CpyJpegBuf, lJpegSize, pyRgbBuf, _iWidth, 0, _iHeight, 
+		TJPF::TJPF_RGB, 0) == -1) throw std::runtime_error(tjGetErrorStr());
 
-	_piImgBuf = new uint32_t[_iHeight * (_iWidth >> 1)];	// Allocate space for the converted Y1CbY2Cr image
+	_apiImgBuf = new uint32_t[_iHeight * (_iWidth >> 1)];	// Allocate space for the converted Y1CbY2Cr image
 
-	/* Translate the RGB values to Y1CbY2Cr and store them inside _piImgBuf */
+	/* Translate the RGB values to Y1CbY2Cr and store them inside _apiImgBuf */
 	uint32_t iRow = 0, iColumn = 0;
-	for (uint16_t i = 0; i < _iHeight; i++)	// For every scanline
+	for (int32_t i = 0; i < _iHeight; i++)	// For every scanline
 	{
 		iRow = i * _iWidth * tjPixelSize[TJPF_RGB];	// Offset to the i'th row. Rows have a number of color components in every pixel
-		for (uint16_t j = 0; j < (_iWidth >> 1); j++)	// Every 2 pixels in the XFB share the same color values
+		for (int32_t j = 0; j < (_iWidth >> 1); j++)	// Every 2 pixels in the XFB share the same color values
 		{
 			iColumn = j * (tjPixelSize[TJPF_RGB] << 1);	// We leap through every 2 columns since we process 2 pixels every iteration
 			/* Translate values and store them in the right offset inside the XFB */
-			_piImgBuf[i * (_iWidth >> 1) + j] = 
+			_apiImgBuf[i * (_iWidth >> 1) + j] = 
 				JPEG::rgb2yuv(pyRgbBuf[iRow + iColumn], pyRgbBuf[iRow + iColumn + 1],
 					pyRgbBuf[iRow + iColumn + 2], pyRgbBuf[iRow + iColumn + 3], 
 					pyRgbBuf[iRow + iColumn + 4], pyRgbBuf[iRow + iColumn + 5]);
@@ -111,8 +111,8 @@ JPEG::JPEG(const uint8_t* CpyJpegBuf, uint64_t lJpegSize) : _iWidth{0}, _iHeight
  */
 JPEG::JPEG(const JPEG& CjpegOther) : _iWidth{CjpegOther._iWidth}, _iHeight{CjpegOther._iHeight},
 	_iPosX{CjpegOther._iPosX}, _iPosY{CjpegOther._iPosY}, 
-	_piImgBuf{new uint32_t[(_iWidth >> 1) * _iHeight]}
-{ std::memcpy(_piImgBuf, CjpegOther._piImgBuf, (_iWidth << 1) * _iHeight); }
+	_apiImgBuf{new uint32_t[(_iWidth >> 1) * _iHeight]}
+{	std::memcpy(_apiImgBuf, CjpegOther._apiImgBuf, (_iWidth << 1) * _iHeight);	}
 
 
 /**
@@ -121,13 +121,13 @@ JPEG::JPEG(const JPEG& CjpegOther) : _iWidth{CjpegOther._iWidth}, _iHeight{Cjpeg
  * @param jpegOther the JPEG::JPEG object to be moved
  */
 JPEG::JPEG(JPEG&& jpegOther) noexcept : _iWidth{jpegOther._iWidth}, _iHeight{jpegOther._iHeight},
-	_iPosX{jpegOther._iPosX}, _iPosY{jpegOther._iPosY}, _piImgBuf{jpegOther._piImgBuf}
+	_iPosX{jpegOther._iPosX}, _iPosY{jpegOther._iPosY}, _apiImgBuf{jpegOther._apiImgBuf}
 {
 	jpegOther._iWidth = 0;
 	jpegOther._iHeight = 0;
 	jpegOther._iPosX = 0;
 	jpegOther._iPosY = 0;
-	jpegOther._piImgBuf = nullptr;
+	jpegOther._apiImgBuf = nullptr;
 }
 
 
@@ -141,15 +141,15 @@ JPEG& JPEG::operator =(const JPEG& CjpegOther)
 {
 	if (this != &CjpegOther)
 	{
-		delete[] _piImgBuf;
+		delete[] _apiImgBuf;
 
 		_iWidth = CjpegOther._iWidth;
 		_iHeight = CjpegOther._iHeight;
 		_iPosX = CjpegOther._iPosX;
 		_iPosY = CjpegOther._iPosY;
-		_piImgBuf = new uint32_t[(_iWidth >> 1) * _iHeight];
+		_apiImgBuf = new uint32_t[(_iWidth >> 1) * _iHeight];
 
-		std::memcpy(_piImgBuf, CjpegOther._piImgBuf, (_iWidth << 1) * _iHeight);
+		std::memcpy(_apiImgBuf, CjpegOther._apiImgBuf, (_iWidth << 1) * _iHeight);
 	}
 
 	return *this;
@@ -166,19 +166,19 @@ JPEG& JPEG::operator =(JPEG&& jpegOther) noexcept
 {
 	if (this != &jpegOther)
 	{
-		delete[] _piImgBuf;
+		delete[] _apiImgBuf;
 
 		_iWidth = jpegOther._iWidth;
 		_iHeight = jpegOther._iHeight;
 		_iPosX = jpegOther._iPosX;
 		_iPosY = jpegOther._iPosY;
-		_piImgBuf = jpegOther._piImgBuf;
+		_apiImgBuf = jpegOther._apiImgBuf;
 		
 		jpegOther._iWidth = 0;
 		jpegOther._iHeight = 0;
 		jpegOther._iPosX = 0;
 		jpegOther._iPosY = 0;
-		jpegOther._piImgBuf = nullptr;
+		jpegOther._apiImgBuf = nullptr;
 	}
 
 	return *this;
@@ -190,8 +190,8 @@ JPEG& JPEG::operator =(JPEG&& jpegOther) noexcept
  */
 JPEG::~JPEG() noexcept
 {
-	delete[] _piImgBuf;
-	_piImgBuf = nullptr;
+	delete[] _apiImgBuf;
+	_apiImgBuf = nullptr;
 }
 
 
@@ -224,7 +224,7 @@ void JPEG::display(void* pXfb, const GXRModeObj* CpGXRmode, float fOriginalWidth
 	bool bStop = false;	// Stop flag for the copy process
 
 	/* Copy whatever part of the image buffer is needed to the XFB */
-	for (uint16_t i = 0; i < _iHeight && !bStop; i++)	// For every scanline that is needed
+	for (int32_t i = 0; i < _iHeight && !bStop; i++)	// For every scanline that is needed
 	{
 		if (iY + i < 0) i += (-iY - 1);	// If the first scanline is before the start of the XFB, jump to the first valid scanline
 		else if (iY + i >= CpGXRmode->xfbHeight) bStop = true;	// Stop if we reach the end of the XFB
@@ -232,11 +232,11 @@ void JPEG::display(void* pXfb, const GXRModeObj* CpGXRmode, float fOriginalWidth
 		{
 			if (iX < 0)	// If the X coordinate is to the left of the XFB copy the relevant part into it
 				std::memcpy(pFrameBuffer + (iY + i) * (CpGXRmode->fbWidth >> 1), 
-					_piImgBuf + i * (_iWidth >> 1) + (-iX), 
+					_apiImgBuf + i * (_iWidth >> 1) + (-iX), 
 					std::min(((_iWidth >> 1) + iX) << 2, CpGXRmode->fbWidth << 1));
 			else if (iX < CpGXRmode->fbWidth)	// If the X coordinate is inside the XFB copy the relevant part into it
 				std::memcpy(pFrameBuffer + (iY + i) * (CpGXRmode->fbWidth >> 1) + iX, 
-					_piImgBuf + i * (_iWidth >> 1), 
+					_apiImgBuf + i * (_iWidth >> 1), 
 					std::min(_iWidth << 1, ((CpGXRmode->fbWidth >> 1) - iX) << 2));
 		}
 	}
@@ -256,7 +256,7 @@ void JPEG::display(void* pXfb, const GXRModeObj* CpGXRmode, float fOriginalWidth
  */
 uint32_t JPEG::rgb2yuv (uint8_t yR1, uint8_t yG1, uint8_t yB1, uint8_t yR2, uint8_t yG2, uint8_t yB2) noexcept
 {
-	int32_t iY1, iCb1, iCr1, iY2, iCb2, iCr2, iCb, iCr;
+	int32_t iY1 = 0, iCb1 = 0, iCr1 = 0, iY2 = 0, iCb2 = 0, iCr2 = 0, iCb = 0, iCr = 0;
 
 	iY1 = (299 * yR1 + 587 * yG1 + 114 * yB1) / 1000;
 	iCb1 = (-16874 * yR1 - 33126 * yG1 + 50000 * yB1 + 12800000) / 100000;

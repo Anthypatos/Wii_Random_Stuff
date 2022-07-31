@@ -1,10 +1,11 @@
 #ifndef _CAPP_HPP_
 #define _CAPP_HPP_
 
+#include <cstdint>
+#include <vector>
 #include <SDL.h>
 #include <SDL_video.h>
 #include <SDL_events.h>
-#include <SDL_stdinc.h>
 #include "CEvent.hpp"
 #include "Grid.hpp"
 #include "players/Player.hpp"
@@ -15,8 +16,8 @@ class CApp : public CEvent
     public:
         enum State_t {STATE_START, STATE_INGAME, STATE_WIN};
 
-        static const Uint16 SCrWindowWidth = 640;
-        static const Uint16 SCrWindowHeight = 480;
+        static const uint16_t SCrWindowWidth = 640;
+        static const uint16_t SCrWindowHeight = 480;
 
         static CApp* getInstance();
 
@@ -27,25 +28,25 @@ class CApp : public CEvent
         void OnInit();
         void OnLoop() const noexcept;
         void OnRender();
-        void OnCleanup() const noexcept;
+        void OnCleanup() noexcept;
         void Reset() noexcept;
 
         virtual void OnEvent(SDL_Event* pSdlEvent) noexcept;
-        virtual void OnMouseMove(Sint32 iMouseX, Sint32 iMouseY, Sint32 iRelX, Sint32 iRelY, 
+        virtual void OnMouseMove(int32_t iMouseX, int32_t iMouseY, int32_t iRelX, int32_t iRelY, 
             bool bLeft, bool bRight, bool bMiddle) noexcept;
-        virtual void OnJoyAxis(Uint8 yWhich, Uint8 axis, Sint16 rValue) noexcept;
-        virtual void OnJoyButtonDown(Uint8 yWhich, Uint8 yButton) noexcept;
-        virtual void OnJoyButtonUp(Uint8 yWhich, Uint8 yButton) noexcept;
-        virtual void OnJoyHat(Uint8 yWhich, Uint8 yHat, Uint8 yValue) noexcept;
+        virtual void OnJoyAxis(uint8_t yWhich, uint8_t axis, Sint16 rValue) noexcept;
+        virtual void OnJoyButtonDown(uint8_t yWhich, uint8_t yButton) noexcept;
+        virtual void OnJoyButtonUp(uint8_t yWhich, uint8_t yButton) noexcept;
+        virtual void OnJoyHat(uint8_t yWhich, uint8_t yHat, uint8_t yValue) noexcept;
         virtual void OnExit() noexcept;
         virtual void OnExpose() noexcept;
-        virtual void OnUser(Uint8 yType, Sint32 iCode, void* pData1, void* pData2) noexcept;
+        virtual void OnUser(uint8_t yType, int32_t iCode, void* pData1, void* pData2) noexcept;
 
     private:
         static CApp* _SpCAppInstance; 
 
         bool _bRunning;
-        State_t _ECurrentState;
+        State_t _EcurrentState;
         
         SDL_Surface* _pSdlSurfaceDisplay;
         SDL_Surface* _pSdlSurfaceStart;
@@ -57,7 +58,7 @@ class CApp : public CEvent
 
         Grid _grid;
         Grid::PlayerMark _EplayerMarkCurrent;
-        Player* _apPlayer;
+        std::vector<Player*> _apPlayer;
 
         CApp() noexcept;
 };

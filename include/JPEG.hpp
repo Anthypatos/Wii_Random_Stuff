@@ -22,17 +22,19 @@ class JPEG
 {
 public:
     /** Getters */
-    uint32_t* getImgBuf() const noexcept;
     int32_t getWidth() const noexcept;
     int32_t getHeight() const noexcept;
     int32_t getPosX() const noexcept;
     int32_t getPosY() const noexcept;
+    uint32_t* getImgBuf() const noexcept;
+
 
     /**
      * @brief Construct a new JPEG object from a file in the filesystem
      * @param CsFilePath the path to the image in the filesystem
      */
     explicit JPEG(const std::string& CsFilePath);
+
 
     /**
      * @brief Construct a new JPEG object from an image buffer
@@ -41,12 +43,15 @@ public:
      */
     explicit JPEG(const uint8_t* CpyJpegBuf, uint64_t lJpegSize);
     
+
     JPEG(const JPEG& CjpegOther);       /**< Copy constructor */
     JPEG(JPEG&& jpegOther) noexcept;    /**< Movement constructor */
     ~JPEG() noexcept;                   /**< Destructor */
 
+
     JPEG& operator =(const JPEG& CjpegOther);        /**< Assign with copy operator */
     JPEG& operator =(JPEG&& jpegOther) noexcept;     /**< Assign with movement operator */
+
 
     /**
      * @brief Displays the JPEG on the XFB. Width or height of the image can be out
@@ -68,18 +73,30 @@ private:
     int32_t _iHeight;       /**< Height of the image in pixels */
     int32_t _iPosX;         /**< Coordinate X for the top left corner of the displayed image on the canvas*/
     int32_t _iPosY;         /**< Coordinate Y for the top left corner of the displayed image on the canvas*/
-    uint32_t* _piImgBuf;    /**< Image buffer in Y1CbY2Cr values */
+    uint32_t* _apiImgBuf;   /**< Image buffer in Y1CbY2Cr values */
 
+
+    /**
+     * @brief Convert two RGB pixels to one Y1CbY2Cr
+     * 
+     * @param yR1 the red component of the first pixel
+     * @param yG1 the green component of the first pixel
+     * @param yB1 the blue component of the first pixel
+     * @param yR2 the red component of the second pixel
+     * @param yG2 the green component of the second pixel
+     * @param yB2 the blue component of the second pixel
+     * @return uint32_t the converted Y1CbY2Cr pixel value
+     */
     static uint32_t rgb2yuv(uint8_t yR1, uint8_t yG1, uint8_t yB1, uint8_t yR2, uint8_t yG2, uint8_t yB2) noexcept;
 
 };
 
 
-inline uint32_t* JPEG::getImgBuf() const noexcept { return _piImgBuf; }
 inline int32_t JPEG::getWidth() const noexcept { return _iWidth; }
 inline int32_t JPEG::getHeight() const noexcept { return _iHeight; }
 inline int32_t JPEG::getPosX() const noexcept { return _iPosX; }
 inline int32_t JPEG::getPosY() const noexcept { return _iPosY; }
+inline uint32_t* JPEG::getImgBuf() const noexcept { return _apiImgBuf; }
 
 
 #endif

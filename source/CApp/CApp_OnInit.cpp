@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <string>
 #include <stdexcept>
 #include <ios>
@@ -6,7 +7,6 @@
 #include <SDL_video.h>
 #include <SDL_events.h>
 #include <SDL_joystick.h>
-#include <SDL_stdinc.h>
 
 #ifdef HW_RVL
 	#include <fat.h>
@@ -14,29 +14,30 @@
 
 #include "../../include/CApp.hpp"
 #include "../../include/CSurface.hpp"
+#include "../../include/players/Human.hpp"
 
 
 void CApp::OnInit()
 {
-    Uint32 iInitFlags = SDL_INIT_EVERYTHING;
+    uint32_t iInitFlags = SDL_INIT_EVERYTHING;
 
     #ifdef HW_RVL
 		fatInitDefault();
-        iInitFlags &= ~SDL_INIT_CDROM;
 	#endif
+    #ifdef SDL_CDROM_DISABLED
+        iInitFlags &= ~SDL_INIT_CDROM;
+    #endif
 
-    if(SDL_Init(iInitFlags) < 0) 
-        throw std::runtime_error(std::string("Unable to init SDL: ") + SDL_GetError());
+    if(SDL_Init(iInitFlags) < 0) throw std::runtime_error(SDL_GetError());
 
-    if ((_pSdlSurfaceDisplay = SDL_SetVideoMode(CApp::SCrWindowWidth, CApp::SCrWindowHeight, 16, 
-        SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN)) == nullptr) 
-        throw std::runtime_error(std::string("Unable to set video: ") + SDL_GetError());
+    if ((_pSdlSurfaceDisplay = SDL_SetVideoMode(CApp::SCrWindowWidth, CApp::SCrWindowHeight, 16,
+        SDL_HWSURFACE | SDL_DOUBLEBUF)) == nullptr) throw std::runtime_error(SDL_GetError());
 
-    _apPlayer = new Player(Grid::PlayerMark::GRID_TYPE_RED);
+    _apPlayer.push_back(new Human());
     SDL_JoystickEventState(SDL_ENABLE);
 
-    try 
-    { 
+    try
+    {
         _pSdlSurfaceStart = CSurface::OnLoad("/apps/test/resources/gfx/start.bmp");
         _pSdlSurfaceGrid = CSurface::OnLoad("/apps/test/resources/gfx/grid.bmp");
         _pSdlSurfaceRed = CSurface::OnLoad("/apps/test/resources/gfx/red.bmp");
@@ -51,7 +52,7 @@ void CApp::OnInit()
 
 	/*SDL_WM_SetCaption("Joytest", nullptr);
     SDL_ShowCursor(SDL_DISABLE);
- 
+
     // Make sure SDL cleans up before exit
     atexit(Cleanup);*/
 }

@@ -137,7 +137,7 @@ int main(int argc, char** argv)
 				if (pWPADData1->btns_d & WPAD_BUTTON_HOME) 
 				{
 					prepare_exit();
-					exit(0);
+					exit(EXIT_SUCCESS);
 				}
 				else if (pWPADData1->btns_d & WPAD_BUTTON_1) TOGGLE(HW_GPIOB_OUT, SLOT_LED);
 				else if (pWPADData1->btns_d & WPAD_BUTTON_2) TOGGLE(HW_GPIOB_OUT, DO_EJECT);
@@ -274,5 +274,5 @@ void die(const char* pcMsg)
 	sleep(5);
 
 	prepare_exit();
-	exit(1);
+	exit(EXIT_FAILURE);
 }

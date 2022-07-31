@@ -2,19 +2,19 @@
 #define _CSURFACE_HPP_
 
 #include <string>
+#include <cstdint>
 #include <SDL.h>
-#include <SDL_stdinc.h>
 
 
 class CSurface 
 {
     public:
         static SDL_Surface* OnLoad(const std::string& CsFilePath);
-        static void OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc, 
-            Sint32 iDestX, Sint32 iDestY);
-        static void OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc, 
-            Sint32 iDestX, Sint32 iDestY, Sint32 iSrcX, Sint32 iSrcY, Sint32 iSrcWidth, Sint32 iSrcHeight);
-        static void Transparent(SDL_Surface* pSdlSurfaceDest, Sint32 iRed, Sint32 iGreen, Sint32 iBlue);
+        static void OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc, int32_t iDestX, 
+            int32_t iDestY);
+        static void OnDraw(SDL_Surface* pSdlSurfaceDest, SDL_Surface* pSdlSurfaceSrc, int32_t iDestX, 
+            int32_t iDestY, int32_t iSrcX, int32_t iSrcY, int32_t iSrcWidth, int32_t iSrcHeight);
+        static void Transparent(SDL_Surface* pSdlSurfaceDest, int32_t iRed, int32_t iGreen, int32_t iBlue);
 
 };
 

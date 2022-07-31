@@ -25,9 +25,9 @@ INCLUDES	:=	include include/players
 # options for code generation
 #---------------------------------------------------------------------------------
 
-CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE) `freetype-config --cflags` `sdl-config --cflags` \
-			`$(PREFIX)pkg-config libturbojpeg jansson --cflags`
-CXXFLAGS	=	$(CFLAGS)
+CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE) `sdl-config --cflags` \
+			`$(PREFIX)pkg-config --cflags libturbojpeg jansson`
+CXXFLAGS	=	$(CFLAGS) -std=c++20
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 
@@ -139,8 +139,6 @@ $(OFILES_SOURCES) : $(HFILES)
 	@echo $(notdir $<)
 	$(bin2o)
 
--include $(DEPENDS)
-
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .mod extension
 #---------------------------------------------------------------------------------
@@ -148,8 +146,6 @@ $(OFILES_SOURCES) : $(HFILES)
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	$(bin2o)
-
--include $(DEPENDS)
 
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .mp3 extension

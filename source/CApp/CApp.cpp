@@ -1,5 +1,6 @@
 #include <SDL_events.h>
 #include <SDL_joystick.h>
+#include <iostream>
 #include "../../include/CApp.hpp"
 
 
@@ -13,11 +14,11 @@ CApp* CApp::getInstance()
 }
 
 
-CApp::CApp() noexcept : CEvent{}, _bRunning{true},  _ECurrentState{State_t::STATE_START},
-    _pSdlSurfaceDisplay{nullptr}, _pSdlSurfaceStart{nullptr}, _pSdlSurfaceGrid{nullptr}, 
-    _pSdlSurfaceRed{nullptr}, _pSdlSurfaceYellow{nullptr}, _pSdlSurfaceWinRed{nullptr}, 
+CApp::CApp() noexcept : CEvent{}, _bRunning{true},  _EcurrentState{State_t::STATE_START},
+    _pSdlSurfaceDisplay{nullptr}, _pSdlSurfaceStart{nullptr}, _pSdlSurfaceGrid{nullptr},
+    _pSdlSurfaceRed{nullptr}, _pSdlSurfaceYellow{nullptr}, _pSdlSurfaceWinRed{nullptr},
     _pSdlSurfaceWinYellow{nullptr}, _grid{}, _EplayerMarkCurrent{Grid::PlayerMark::GRID_TYPE_RED},
-    _apPlayer{nullptr} {}
+    _apPlayer{std::vector<Player*>()} {}
 
 
 void CApp::OnExecute()
@@ -25,24 +26,26 @@ void CApp::OnExecute()
     OnInit();
 
     SDL_Event sdlEvent;
- 
-    while(_bRunning) 
+
+    while(_bRunning)
     {
         while(SDL_PollEvent(&sdlEvent)) OnEvent(&sdlEvent);
- 
+
         OnLoop();
         OnRender();
     }
- 
+
     OnCleanup();
 }
 
 
 void CApp::Reset() noexcept
 {
-    _ECurrentState = STATE_START;
+    _EcurrentState = STATE_START;
     _grid = Grid{};
-    _EplayerMarkCurrent = Grid::PlayerMark::GRID_TYPE_RED;
+    _EplayerMarkCurrent = Grid::PlayerMark::GRID_TYPE_NONE;
 
-    for (Uint8 i = 1; i < SDL_NumJoysticks(); i++) delete (_apPlayer + i);
+    for (std::vector<Player*>::iterator i = ++(_apPlayer.begin()); i != _apPlayer.end(); ++i) delete *i;
+    _apPlayer.resize(1);
+    _apPlayer.shrink_to_fit();
 }
