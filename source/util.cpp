@@ -89,7 +89,7 @@ void print_wiimote_data(void* pXfb, const GXRModeObj* CpGXRmode, WPADData* pWPAD
 }
 
 
-void state_in_game(SDL_Surface* pSdlSurfaceScreen, SDL_Joystick** joysticks)
+void state_in_game(SDL_Surface* pSdlSurfaceScreen, SDL_Joystick** apJoysticks)
 {
 	SDL_FillRect(pSdlSurfaceScreen, nullptr, SDL_MapRGB(pSdlSurfaceScreen->format, 35, 75, 0));
 
@@ -100,26 +100,29 @@ void state_in_game(SDL_Surface* pSdlSurfaceScreen, SDL_Joystick** joysticks)
 	#endif
 	
 	// Joysticks' properties can be fetched
-	for (uint8_t i = 0; i < JOYNUMS; i++)
+	for (uint8_t i = 0; i < SDL_NumJoysticks(); i++)
 		std::cout << "JOYPAD " << i << std::endl << 
-			"HAS " << SDL_JoystickNumAxes(joysticks[i]) << " AXES" << std::endl << 
-			"AND " << SDL_JoystickNumButtons(joysticks[i]) << " BUTTONS" << std::endl << 
-			"AND " << SDL_JoystickNumBalls(joysticks[i]) << " BALLS" << std::endl << 
-			"AND " << SDL_JoystickNumHats(joysticks[i]) << " HATS";
+			"HAS " << SDL_JoystickNumAxes(apJoysticks[i]) << " AXES" << std::endl << 
+			"AND " << SDL_JoystickNumButtons(apJoysticks[i]) << " BUTTONS" << std::endl << 
+			"AND " << SDL_JoystickNumBalls(apJoysticks[i]) << " BALLS" << std::endl << 
+			"AND " << SDL_JoystickNumHats(apJoysticks[i]) << " HATS";
 			
 	SDL_JoystickUpdate();	// Update joysticks' status
 
-	SDL_Event SDLEvent;
-	while (SDL_PollEvent(&SDLEvent))
+	SDL_Event sdlEvent;
+	uint8_t yAxisWhich = 0, yAxisIndex = 0;
+	int16_t rAxisValue = 0;
+	uint16_t rMouseX = 0, rMouseY = 0;
+
+	while (SDL_PollEvent(&sdlEvent))
 	{
-		// Checking button status is almost like handling keyboard events, use SDL_JOYBUTTONDOWN and 
-		// SDL_JOYBUTTONUP
-		switch (SDLEvent.type)
+		switch (sdlEvent.type)
 		{
+			// Checking button status is almost like handling keyboard events
 			case SDL_JOYBUTTONDOWN:
 			case SDL_JOYBUTTONUP:
 
-				switch (SDLEvent.jbutton.button)
+				switch (sdlEvent.jbutton.button)
 				{
 					case 0:	std::cout << "A "; 		break;
 					case 1:	std::cout << "B "; 		break;
@@ -132,27 +135,36 @@ void state_in_game(SDL_Surface* pSdlSurfaceScreen, SDL_Joystick** joysticks)
 					case 8:	std::cout << "C "; 		break;
 					default: 						break;
 				}
-				std::cout << (SDLEvent.type == SDL_JOYBUTTONDOWN ? "DOWN" : "UP") << " AND " << 
-					(SDLEvent.jbutton.state == SDL_PRESSED ? "PRESSED" : "RELEASED");
+				std::cout << (sdlEvent.type == SDL_JOYBUTTONDOWN ? "DOWN" : "UP") << " AND " << 
+					(sdlEvent.jbutton.state == SDL_PRESSED ? "PRESSED" : "RELEASED");
 
 				break;
 			
 			// An axis motion 
 			case SDL_JOYAXISMOTION:  
-				if (SDLEvent.jaxis.value < -3200 || SDLEvent.jaxis.value > 3200) 
-				{	
-					if (SDLEvent.jaxis.axis == 0) 
+				if (sdlEvent.jaxis.value < -3200 || sdlEvent.jaxis.value > 3200) 
+				{
+					yAxisWhich = sdlEvent.jaxis.which;
+					yAxisIndex = sdlEvent.jaxis.axis;
+					rAxisValue = sdlEvent.jaxis.value;
+
+					if (yAxisIndex == 0) 
 					{
-						/* Left and right movement (according to SDLEvent.jaxis.value) of the
+						/* Left and right movement (according to sdlEvent.jaxis.value) of the
 							nunchuck stick or left analogic stick of the classic pad*/
 					}
-
-					if (SDLEvent.jaxis.axis == 1) 
+					else if (yAxisIndex == 1) 
 					{
-						/* Up and Down movement (according to SDLEvent.jaxis.value) of the 
+						/* Up and Down movement (according to sdlEvent.jaxis.value) of the 
 							nunchuck stick or left analogic stick of the classic pad */
 					}
 				}
+				break;
+
+			// Infra Red is mapped as a mouse
+			case SDL_MOUSEMOTION:
+				rMouseX = sdlEvent.motion.x; 
+				rMouseY = sdlEvent.motion.y;
 				break;
 
 			case SDL_QUIT:
@@ -162,35 +174,37 @@ void state_in_game(SDL_Surface* pSdlSurfaceScreen, SDL_Joystick** joysticks)
 		}
 	}	// End of event pool
 	
-	std::cout << "IR X " << SDLEvent.motion.x << " IR Y " << SDLEvent.motion.y << std::endl <<
-		"JOYAXISMOTION OF PAD " << SDLEvent.jaxis.which << std::endl << "AXIS " << 
-		SDLEvent.jaxis.axis << std::endl << "VALUE " << SDLEvent.jaxis.value << std::endl;
+	std::cout << "IR X " << rMouseX << " IR Y " << rMouseY << std::endl <<
+		"JOYAXISMOTION OF PAD " << yAxisWhich << std::endl << 
+		"AXIS " << yAxisIndex << std::endl << 
+		"VALUE " << rAxisValue << std::endl;
 	
 	// The hat reports the directional PAD's status 
-	for (uint8_t i = 0; i < JOYNUMS; i++)
+	for (uint8_t i = 0; i < SDL_NumJoysticks(); i++)
 	{
-		uint8_t yHats = SDL_JoystickNumHats(joysticks[i]);
+		uint8_t yHats = SDL_JoystickNumHats(apJoysticks[i]);
 		for (uint8_t j = 0; j < yHats; j++)
 		{
 			std::cout << "HAT " << j << " ";
 
-			uint8_t yJoystate = SDL_JoystickGetHat(joysticks[i], j);
+			uint8_t yJoystate = SDL_JoystickGetHat(apJoysticks[i], j);
 			switch (yJoystate)
 			{
-				case SDL_HAT_CENTERED: 		std::cout << "CENTERED"; 	break;
-				case SDL_HAT_UP: 			std::cout << "UP"; 			break;
-				case SDL_HAT_RIGHT: 		std::cout << "RIGHT"; 		break;
-				case SDL_HAT_DOWN: 			std::cout << "DOWN"; 		break;
-				case SDL_HAT_LEFT: 			std::cout << "LEFT"; 		break;
-				case SDL_HAT_RIGHTUP: 		std::cout << "RIGHTUP"; 	break;
-				case SDL_HAT_RIGHTDOWN: 	std::cout << "RIGHTDOWN"; 	break;
-				case SDL_HAT_LEFTUP: 		std::cout << "LEFTUP"; 		break;
-				case SDL_HAT_LEFTDOWN: 		std::cout << "LEFTDOWN"; 	break;
+				case SDL_HAT_CENTERED: 		std::cout << "CENTERED "; 	break;
+				case SDL_HAT_UP: 			std::cout << "UP "; 		break;
+				case SDL_HAT_RIGHT: 		std::cout << "RIGHT "; 		break;
+				case SDL_HAT_DOWN: 			std::cout << "DOWN "; 		break;
+				case SDL_HAT_LEFT: 			std::cout << "LEFT "; 		break;
+				case SDL_HAT_RIGHTUP: 		std::cout << "RIGHTUP "; 	break;
+				case SDL_HAT_RIGHTDOWN: 	std::cout << "RIGHTDOWN ";	break;
+				case SDL_HAT_LEFTUP: 		std::cout << "LEFTUP "; 	break;
+				case SDL_HAT_LEFTDOWN: 		std::cout << "LEFTDOWN "; 	break;
 			}
 		}
 		
 		// Axis events can be fetched with the SDL_JoystickGetAxis function
-		std::cout << "JOYSTICKGETAXIS" << std::endl << "X MOVE " << 
-			SDL_JoystickGetAxis(joysticks[i], 0) << " Y MOVE " << SDL_JoystickGetAxis(joysticks[i], 1);
+		std::cout << "JOYSTICKGETAXIS" << std::endl 
+			<< "X MOVE " << SDL_JoystickGetAxis(apJoysticks[i], 0) << " Y MOVE " << 
+			SDL_JoystickGetAxis(apJoysticks[i], 1) << std::endl;
 	}
 }

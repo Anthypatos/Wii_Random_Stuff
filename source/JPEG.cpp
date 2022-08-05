@@ -82,10 +82,10 @@ JPEG::JPEG(const uint8_t* CpyJpegBuf, uint64_t lJpegSize) : _iWidth{0}, _iHeight
 
 	/* Translate the RGB values to Y1CbY2Cr and store them inside _apiImgBuf */
 	uint32_t iRow = 0, iColumn = 0;
-	for (int32_t i = 0; i < _iHeight; i++)	// For every scanline
+	for (int16_t i = 0; i < _iHeight; i++)	// For every scanline
 	{
 		iRow = i * _iWidth * tjPixelSize[TJPF_RGB];	// Offset to the i'th row. Rows have a number of color components in every pixel
-		for (int32_t j = 0; j < (_iWidth >> 1); j++)	// Every 2 pixels in the XFB share the same color values
+		for (int16_t j = 0; j < (_iWidth >> 1); j++)	// Every 2 pixels in the XFB share the same color values
 		{
 			iColumn = j * (tjPixelSize[TJPF_RGB] << 1);	// We leap through every 2 columns since we process 2 pixels every iteration
 			/* Translate values and store them in the right offset inside the XFB */
@@ -224,7 +224,7 @@ void JPEG::display(void* pXfb, const GXRModeObj* CpGXRmode, float fOriginalWidth
 	bool bStop = false;	// Stop flag for the copy process
 
 	/* Copy whatever part of the image buffer is needed to the XFB */
-	for (int32_t i = 0; i < _iHeight && !bStop; i++)	// For every scanline that is needed
+	for (int16_t i = 0; i < _iHeight && !bStop; i++)	// For every scanline that is needed
 	{
 		if (iY + i < 0) i += (-iY - 1);	// If the first scanline is before the start of the XFB, jump to the first valid scanline
 		else if (iY + i >= CpGXRmode->xfbHeight) bStop = true;	// Stop if we reach the end of the XFB

@@ -43,7 +43,7 @@ void CApp::Reset() noexcept
 {
     _EcurrentState = STATE_START;
     _grid = Grid{};
-    _EplayerMarkCurrent = Grid::PlayerMark::GRID_TYPE_NONE;
+    _EplayerMarkCurrent = Grid::PlayerMark::GRID_TYPE_RED;
 
     for (std::vector<Player*>::iterator i = ++(_apPlayer.begin()); i != _apPlayer.end(); ++i) delete *i;
     _apPlayer.resize(1);

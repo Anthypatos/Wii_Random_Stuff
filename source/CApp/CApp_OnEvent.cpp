@@ -10,7 +10,41 @@
 void CApp::OnEvent(SDL_Event* pSdlEvent) noexcept { CEvent::OnEvent(pSdlEvent); }
 
 
-void CApp::OnMouseMove(int32_t iMouseX, int32_t iMouseY, int32_t iRelX, int32_t iRelY, bool bLeft, 
+void CApp::OnLButtonDown(int32_t iMouseX, int32_t iMouseY)
+{
+    switch (_EcurrentState)
+    {
+        case State_t::STATE_START:
+        {
+            _EcurrentState = State_t::STATE_INGAME;
+
+            break;
+        }
+        case State_t::STATE_INGAME:
+        {
+            int32_t iColumn = iMouseX / (_pSdlSurfaceDisplay->w / Grid::SCyWidth);
+
+            if (_grid.isValidPlay(iColumn))
+            {
+                _grid.makePlay(_EplayerMarkCurrent, iColumn);
+                if (_grid.checkWinner() == Grid::PlayerMark::GRID_TYPE_NONE)
+                    _EplayerMarkCurrent = Grid::nextPlayer(_EplayerMarkCurrent);
+                else _EcurrentState = State_t::STATE_WIN;
+            }
+
+            break;
+        }
+        case State_t::STATE_WIN:
+        {
+            Reset();
+
+            break;
+        }
+    }
+}
+
+
+void CApp::OnMouseMove(int32_t iMouseX, int32_t iMouseY, int32_t iRelX, int32_t iRelY, bool bLeft,
     bool bRight, bool bMiddle) noexcept {}
 
 
@@ -30,7 +64,7 @@ void CApp::OnJoyButtonDown(uint8_t yWhich, uint8_t yButton) noexcept
                     int32_t iMouseX = 0, iMouseY = 0;
                     SDL_GetMouseState(&iMouseX, &iMouseY);
 
-                    if (iMouseX >= 0 && iMouseX < (CApp::SCrWindowWidth >> 1) && iMouseY >= 0 && 
+                    if (iMouseX >= 0 && iMouseX < (CApp::SCrWindowWidth >> 1) && iMouseY >= 0 &&
                         iMouseY < CApp::SCrWindowHeight)
                     {
                         _EcurrentState = State_t::STATE_INGAME;
@@ -42,7 +76,6 @@ void CApp::OnJoyButtonDown(uint8_t yWhich, uint8_t yButton) noexcept
                     {
                         _EcurrentState = State_t::STATE_INGAME;
                         _apPlayer.at(0)->setPlayerMark(Grid::PlayerMark::GRID_TYPE_RED);
-                        _apPlayer.push_back(new Human(Grid::PlayerMark::GRID_TYPE_YELLOW));
                     }
 
                     break;
@@ -63,11 +96,11 @@ void CApp::OnJoyButtonDown(uint8_t yWhich, uint8_t yButton) noexcept
                         int32_t iMouseX = 0, iMouseY = 0;
                         SDL_GetMouseState(&iMouseX, &iMouseY);
                         int32_t iColumn = iMouseX / (_pSdlSurfaceDisplay->w / Grid::SCyWidth);
-                
+
                         if (_grid.isValidPlay(iColumn))
                         {
                             _grid.makePlay(_EplayerMarkCurrent, iColumn);
-                            if (_grid.checkWinner() == Grid::PlayerMark::GRID_TYPE_NONE) 
+                            if (_grid.checkWinner() == Grid::PlayerMark::GRID_TYPE_NONE)
                                 _EplayerMarkCurrent = Grid::nextPlayer(_EplayerMarkCurrent);
                             else _EcurrentState = State_t::STATE_WIN;
                         }
@@ -76,9 +109,8 @@ void CApp::OnJoyButtonDown(uint8_t yWhich, uint8_t yButton) noexcept
                     }
                     case 6: _bRunning = false; break;
                 }
-
-                break;
             }
+            break;
         }
         case State_t::STATE_WIN:
         {
@@ -89,7 +121,7 @@ void CApp::OnJoyButtonDown(uint8_t yWhich, uint8_t yButton) noexcept
                     int32_t iMouseX = 0, iMouseY = 0;
                     SDL_GetMouseState(&iMouseX, &iMouseY);
 
-                    if (iMouseX >= 0 && iMouseX < CApp::SCrWindowWidth && iMouseY >= 0 && 
+                    if (iMouseX >= 0 && iMouseX < CApp::SCrWindowWidth && iMouseY >= 0 &&
                         iMouseY < CApp::SCrWindowHeight) Reset();
 
                     break;

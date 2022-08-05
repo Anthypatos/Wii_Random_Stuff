@@ -12,7 +12,7 @@
 
 
 class CApp : public CEvent
-{ 
+{
     public:
         enum State_t {STATE_START, STATE_INGAME, STATE_WIN};
 
@@ -31,8 +31,10 @@ class CApp : public CEvent
         void OnCleanup() noexcept;
         void Reset() noexcept;
 
+        virtual void OnLButtonDown(int32_t iMouseX, int32_t iMouseY);
+
         virtual void OnEvent(SDL_Event* pSdlEvent) noexcept;
-        virtual void OnMouseMove(int32_t iMouseX, int32_t iMouseY, int32_t iRelX, int32_t iRelY, 
+        virtual void OnMouseMove(int32_t iMouseX, int32_t iMouseY, int32_t iRelX, int32_t iRelY,
             bool bLeft, bool bRight, bool bMiddle) noexcept;
         virtual void OnJoyAxis(uint8_t yWhich, uint8_t axis, Sint16 rValue) noexcept;
         virtual void OnJoyButtonDown(uint8_t yWhich, uint8_t yButton) noexcept;
@@ -43,11 +45,11 @@ class CApp : public CEvent
         virtual void OnUser(uint8_t yType, int32_t iCode, void* pData1, void* pData2) noexcept;
 
     private:
-        static CApp* _SpCAppInstance; 
+        static CApp* _SpCAppInstance;
 
         bool _bRunning;
         State_t _EcurrentState;
-        
+
         SDL_Surface* _pSdlSurfaceDisplay;
         SDL_Surface* _pSdlSurfaceStart;
         SDL_Surface* _pSdlSurfaceGrid;
@@ -63,5 +65,5 @@ class CApp : public CEvent
         CApp() noexcept;
 };
 
- 
+
 #endif
