@@ -7,23 +7,23 @@
 #include "../../include/Grid.hpp"
 
 
-uint8_t Human::_SyJoysticks = 0;
-
-
-Human::Human(const Grid::PlayerMark& CEplayerMark) : Player{CEplayerMark},
-    _pSdlJoystick{nullptr}
+Human::Human(const Grid::PlayerMark& CEplayerMark) : Player{CEplayerMark}, _pWiiController{nullptr}, 
+    _pGameCubeController{nullptr}
 {
-    if (_SyJoysticks >= SDL_NumJoysticks()) throw std::runtime_error("There are no joysticks available");
+    uint8_t yIndex = 0;
+    while (yIndex < Human::_SCmaxWiiJoysticks && yIndex < SDL_NumJoysticks() && SDL_JoystickOpened(yIndex))
+        yIndex++;
 
-    _pSdlJoystick = SDL_JoystickOpen(Human::_SyJoysticks);
-    Human::_SyJoysticks++;
+    if (yIndex == Human::_SCmaxWiiJoysticks || yIndex == SDL_NumJoysticks())
+        throw std::out_of_range("There are no joysticks available");
 
-    if (_pSdlJoystick == nullptr) throw std::runtime_error(SDL_GetError());
+    _pWiiController = new WiiController(yIndex);
+    _pGameCubeController = new GameCubeController(yIndex);
 }
 
 
 Human::~Human() noexcept 
 { 
-    SDL_JoystickClose(_pSdlJoystick);
-    Human::_SyJoysticks--;
+    delete _pWiiController;
+    delete _pGameCubeController;
 }

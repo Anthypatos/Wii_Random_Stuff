@@ -11,7 +11,7 @@
 class Grid
 {
     public:
-        enum PlayerMark {GRID_TYPE_NONE = 0, GRID_TYPE_RED = 1, GRID_TYPE_YELLOW = 2};
+        enum PlayerMark {GRID_TYPE_NONE = 0, GRID_TYPE_RED = INT_MIN, GRID_TYPE_YELLOW = INT_MAX};
 
         static const uint8_t SCyHeight = 6;
         static const uint8_t SCyWidth = 7;

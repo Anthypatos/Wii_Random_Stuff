@@ -36,7 +36,7 @@ class CApp : public CEvent
         virtual void OnEvent(SDL_Event* pSdlEvent) noexcept;
         virtual void OnMouseMove(int32_t iMouseX, int32_t iMouseY, int32_t iRelX, int32_t iRelY,
             bool bLeft, bool bRight, bool bMiddle) noexcept;
-        virtual void OnJoyAxis(uint8_t yWhich, uint8_t axis, Sint16 rValue) noexcept;
+        virtual void OnJoyAxis(uint8_t yWhich, uint8_t axis, int16_t rValue) noexcept;
         virtual void OnJoyButtonDown(uint8_t yWhich, uint8_t yButton) noexcept;
         virtual void OnJoyButtonUp(uint8_t yWhich, uint8_t yButton) noexcept;
         virtual void OnJoyHat(uint8_t yWhich, uint8_t yHat, uint8_t yValue) noexcept;

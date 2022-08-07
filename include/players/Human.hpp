@@ -4,28 +4,31 @@
 #include <cstdint>
 #include <SDL_joystick.h>
 #include "Player.hpp"
+#include "WiiController.hpp"
+#include "GameCubeController.hpp"
 #include "../Grid.hpp"
 
 
 class Human : public Player
 {
     public:
-        const SDL_Joystick* getJoystick() const noexcept;
+        WiiController* getWiimote() const noexcept;
+        GameCubeController* getGameCubeController() const noexcept;
 
         explicit Human(const Grid::PlayerMark& CEplayerMark = Grid::PlayerMark::GRID_TYPE_NONE);
-        Human(const Human& Chuman) = delete;
-        Human(Human&& human) = delete;
         virtual ~Human() noexcept;
 
     private:
-        static uint8_t _SyJoysticks;
-
-        SDL_Joystick* _pSdlJoystick;
+        static const uint8_t _SCmaxWiiJoysticks = 4;
+        
+        WiiController* _pWiiController;
+        GameCubeController* _pGameCubeController;
 
 };
 
 
-inline const SDL_Joystick* Human::getJoystick() const noexcept { return _pSdlJoystick; }
+inline WiiController* Human::getWiimote() const noexcept { return _pWiiController; }
+inline GameCubeController* Human::getGameCubeController() const noexcept { return _pGameCubeController; }
 
 
 #endif

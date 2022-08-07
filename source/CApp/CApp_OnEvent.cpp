@@ -68,6 +68,7 @@ void CApp::OnJoyButtonDown(uint8_t yWhich, uint8_t yButton) noexcept
                         iMouseY < CApp::SCrWindowHeight)
                     {
                         _EcurrentState = State_t::STATE_INGAME;
+                        _EplayerMarkCurrent = Grid::PlayerMark::GRID_TYPE_RED;
                         _apPlayer.at(0)->setPlayerMark(Grid::PlayerMark::GRID_TYPE_RED);
                         _apPlayer.push_back(new AI(Grid::PlayerMark::GRID_TYPE_YELLOW));
                     }
@@ -75,7 +76,9 @@ void CApp::OnJoyButtonDown(uint8_t yWhich, uint8_t yButton) noexcept
                         iMouseY >= 0 && iMouseY < CApp::SCrWindowHeight)
                     {
                         _EcurrentState = State_t::STATE_INGAME;
+                        _EplayerMarkCurrent = Grid::PlayerMark::GRID_TYPE_RED;
                         _apPlayer.at(0)->setPlayerMark(Grid::PlayerMark::GRID_TYPE_RED);
+                        _apPlayer.push_back(new Human(Grid::PlayerMark::GRID_TYPE_YELLOW));
                     }
 
                     break;
@@ -87,7 +90,7 @@ void CApp::OnJoyButtonDown(uint8_t yWhich, uint8_t yButton) noexcept
         }
         case State_t::STATE_INGAME:
         {
-            if (_apPlayer.at(yWhich)->getPlayerMark() == _EplayerMarkCurrent)
+            //if (_apPlayer.at(yWhich)->getPlayerMark() == _EplayerMarkCurrent)
             {
                 switch (yButton)
                 {
@@ -101,7 +104,14 @@ void CApp::OnJoyButtonDown(uint8_t yWhich, uint8_t yButton) noexcept
                         {
                             _grid.makePlay(_EplayerMarkCurrent, iColumn);
                             if (_grid.checkWinner() == Grid::PlayerMark::GRID_TYPE_NONE)
+                            {
                                 _EplayerMarkCurrent = Grid::nextPlayer(_EplayerMarkCurrent);
+                                if (AI* pAI = dynamic_cast<AI*>(_apPlayer.at(1)))
+                                {
+                                    pAI->ab_pruning(_grid);
+                                    _EplayerMarkCurrent = Grid::nextPlayer(_EplayerMarkCurrent);
+                                }
+                            }
                             else _EcurrentState = State_t::STATE_WIN;
                         }
 

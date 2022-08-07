@@ -35,7 +35,7 @@ void AI::ab_pruning(Grid& grid) const noexcept
 int32_t AI::ab_minValue(const Grid& Cgrid, const Grid::PlayerMark& CEplayerMark, int32_t iDepth, 
     int32_t iAlpha, int32_t iBeta) const noexcept
 {
-    int8_t yWinner = Cgrid.checkWinner();
+    int32_t yWinner = Cgrid.checkWinner();
 
     if (yWinner != Grid::PlayerMark::GRID_TYPE_NONE) return yWinner;
     else if (iDepth == _ySearchLimit) return heuristic(Cgrid);
@@ -59,7 +59,7 @@ int32_t AI::ab_minValue(const Grid& Cgrid, const Grid::PlayerMark& CEplayerMark,
 int32_t AI::ab_maxValue(const Grid& Cgrid, const Grid::PlayerMark& CEplayerMark, int32_t iDepth, 
     int32_t iAlpha, int32_t iBeta) const noexcept
 {
-    int8_t yWinner = Cgrid.checkWinner();
+    int32_t yWinner = Cgrid.checkWinner();
 
     if (yWinner != Grid::PlayerMark::GRID_TYPE_NONE) return yWinner;
     else if (iDepth == _ySearchLimit) return heuristic(Cgrid);

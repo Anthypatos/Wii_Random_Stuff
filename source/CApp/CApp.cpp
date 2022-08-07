@@ -17,8 +17,8 @@ CApp* CApp::getInstance()
 CApp::CApp() noexcept : CEvent{}, _bRunning{true},  _EcurrentState{State_t::STATE_START},
     _pSdlSurfaceDisplay{nullptr}, _pSdlSurfaceStart{nullptr}, _pSdlSurfaceGrid{nullptr},
     _pSdlSurfaceRed{nullptr}, _pSdlSurfaceYellow{nullptr}, _pSdlSurfaceWinRed{nullptr},
-    _pSdlSurfaceWinYellow{nullptr}, _grid{}, _EplayerMarkCurrent{Grid::PlayerMark::GRID_TYPE_RED},
-    _apPlayer{std::vector<Player*>()} {}
+    _pSdlSurfaceWinYellow{nullptr}, _EplayerMarkCurrent{Grid::PlayerMark::GRID_TYPE_NONE}
+{}
 
 
 void CApp::OnExecute()
@@ -43,7 +43,7 @@ void CApp::Reset() noexcept
 {
     _EcurrentState = STATE_START;
     _grid = Grid{};
-    _EplayerMarkCurrent = Grid::PlayerMark::GRID_TYPE_RED;
+    _EplayerMarkCurrent = Grid::PlayerMark::GRID_TYPE_NONE;
 
     for (std::vector<Player*>::iterator i = ++(_apPlayer.begin()); i != _apPlayer.end(); ++i) delete *i;
     _apPlayer.resize(1);
