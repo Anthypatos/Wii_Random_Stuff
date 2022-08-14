@@ -12,16 +12,13 @@
 #define SETTINGS_HPP_
 
 
-#include <string>
-
-
 /**
  * @brief Class for managing application settings
  */
 class Settings
 {
 public:
-    static const std::string SCsDefaultPath;   /**< Default path for storing the application's settings */
+    static const char* SCsDefaultPath;   /**< Default path for storing the application's settings */
 
     /* Getters and setters */
     bool getBackgroundMusic() const noexcept;
@@ -38,13 +35,13 @@ public:
      * @brief Constructs a new object by reading a settings file
      * @param CsFilePath the path to the JSON file holding the settings
      */
-    explicit Settings(const std::string& CsFilePath);
+    explicit Settings(const char* CsFilePath);
 
     /**
      * @brief Saves the settings on disk
      * @param CsPath the path where the settings are to be stored
      */
-    void save(const std::string& CsPath) const;
+    void save(const char* CsPath) const;
 
 private:
     bool _bBackgroundMusic;     /**< Toggles background music */

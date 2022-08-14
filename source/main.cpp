@@ -2,7 +2,6 @@
 #include <iomanip>
 #include <ios>
 #include <cstdlib>
-#include <string>
 #include <cmath>
 #include <dirent.h>
 #include <unistd.h>
@@ -27,7 +26,7 @@
 
 void initialise();
 void initialise_fat();
-void load_settings(const std::string& sFilePath = Settings::SCsDefaultPath);
+void load_settings(const char* sFilePath = Settings::SCsDefaultPath);
 void prepare_exit();
 void die(const char* pcMsg);
 
@@ -53,7 +52,7 @@ void ISR_WiimotePowerButton(int32_t iChan)
 }
 
 
-void ISR_ResetButton(uint32_t iIRQ, void* pContext)
+void ISR_ResetButton(uint32_t uiIRQ, void* pContext)
 {
 	prepare_exit();
 	SYS_ResetSystem(SYS_HOTRESET, 0, 0);
@@ -68,12 +67,12 @@ int main(int argc, char** argv)
 
 	load_settings(Settings::SCsDefaultPath);
 
-	uint8_t yXFB = 0;
+	uint8_t uyXFB = 0;
 	JPEG imageNo(no_jpg, no_jpg_size);
 	JPEG imageYes(yes_jpg, yes_jpg_size);
 
 	WPADData* pWPADData1 = nullptr;
-	uint32_t iExpansionType = WPAD_EXP_NONE;
+	uint32_t uiExpansionType = WPAD_EXP_NONE;
 
 	MODPlay_SetMOD(&SMODPlay, technique_mod);
 	MODPlay_SetVolume(&SMODPlay, 63, 63);
@@ -82,7 +81,7 @@ int main(int argc, char** argv)
 	while(true) 
 	{
 		// Initialise the console, required for printf
-		CON_Init(SapXfb[yXFB], 20, 20, SpGXRmode->fbWidth, SpGXRmode->xfbHeight, 
+		CON_Init(SapXfb[uyXFB], 20, 20, SpGXRmode->fbWidth, SpGXRmode->xfbHeight, 
 			SpGXRmode->fbWidth * VI_DISPLAY_PIX_SZ);
 
 		// The console understands VT terminal escape codes
@@ -91,10 +90,10 @@ int main(int argc, char** argv)
 		// e.g. printf ("\x1b[%d;%dH", row, column );
 		std::cout << "\x1b[2;0H";
 
-		//VIDEO_ClearFrameBuffer(SpGXRmode, SapXfb[yXFB], COLOR_BLACK);	// Clears the screen completely
+		//VIDEO_ClearFrameBuffer(SpGXRmode, SapXfb[uyXFB], COLOR_BLACK);	// Clears the screen completely
 		if (!Ssettings.getBackgroundMusic())		// Music off - show a "no" button
 		{
-			imageNo.display(SapXfb[yXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight, 
+			imageNo.display(SapXfb[uyXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight, 
 				(SpGXRmode->fbWidth - imageNo.getWidth()) >> 1, 
 				(SpGXRmode->xfbHeight - imageNo.getHeight()) >> 1);
 
@@ -103,7 +102,7 @@ int main(int argc, char** argv)
 		}
 		else	// Music on - show a "yes" button
 		{
-			imageYes.display(SapXfb[yXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight,
+			imageYes.display(SapXfb[uyXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight,
 				(SpGXRmode->fbWidth - imageYes.getWidth()) >> 1, 
 				(SpGXRmode->xfbHeight - imageYes.getHeight()) >> 1);
 
@@ -118,13 +117,13 @@ int main(int argc, char** argv)
 		// Call WPAD_ScanPads each loop, this reads the latest controller states
 		WPAD_ScanPads();
 
-		if (WPAD_Probe(WPAD_CHAN_0, &iExpansionType) == WPAD_ERR_NONE)
+		if (WPAD_Probe(WPAD_CHAN_0, &uiExpansionType) == WPAD_ERR_NONE)
 		{
 			pWPADData1 = WPAD_Data(WPAD_CHAN_0);
 
 			// Draw the cursor
 			/*if (pWPADData1->ir.valid) 
-				DRAW_box(SapXfb[yXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight, pWPADData1->ir.x - 5, 
+				DRAW_box(SapXfb[uyXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight, pWPADData1->ir.x - 5, 
 					pWPADData1->ir.y - 5, pWPADData1->ir.x + 5, pWPADData1->ir.y + 5, COLOR_WHITE);*/
 
 			// Rumble on-off
@@ -160,11 +159,11 @@ int main(int argc, char** argv)
 				}
 			}
 
-			print_wiimote_data(SapXfb[yXFB], SpGXRmode, pWPADData1);
+			print_wiimote_data(SapXfb[uyXFB], SpGXRmode, pWPADData1);
 		}
 		
-		VIDEO_SetNextFramebuffer(SapXfb[yXFB]);
-		yXFB ^= 1;
+		VIDEO_SetNextFramebuffer(SapXfb[uyXFB]);
+		uyXFB ^= 1;
 		VIDEO_Flush();
 
 		// Wait for the next frame
@@ -247,7 +246,7 @@ void initialise_fat()
  * 
  * @param sFilePath the path to the configuration in the filesystem
  */
-void load_settings(const std::string& sFilePath)
+void load_settings(const char* sFilePath)
 {
 	try { Ssettings = Settings(sFilePath); }
 	catch (std::ios_base::failure& iof) { Ssettings.save(sFilePath); }

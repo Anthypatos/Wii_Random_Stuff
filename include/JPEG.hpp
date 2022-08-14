@@ -11,7 +11,6 @@
 #ifndef JPEG_HPP_
 #define JPEG_HPP_
 
-#include <string>
 #include <cstdint>
 #include <ogc/gx_struct.h>
 
@@ -33,15 +32,15 @@ public:
      * @brief Construct a new JPEG object from a file in the filesystem
      * @param CsFilePath the path to the image in the filesystem
      */
-    explicit JPEG(const std::string& CsFilePath);
+    explicit JPEG(const char* CsFilePath);
 
 
     /**
      * @brief Construct a new JPEG object from an image buffer
-     * @param CpyJpegBuf pointer to the buffer of the compressed image
+     * @param CapuyJpegBuf pointer to the buffer of the compressed image
      * @param lJpegSize the size of the image in bytes
      */
-    explicit JPEG(const uint8_t* CpyJpegBuf, uint64_t lJpegSize);
+    explicit JPEG(const uint8_t* CapuyJpegBuf, uint64_t lJpegSize);
     
 
     JPEG(const JPEG& CjpegOther);       /**< Copy constructor */
@@ -73,21 +72,22 @@ private:
     int32_t _iHeight;       /**< Height of the image in pixels */
     int32_t _iPosX;         /**< Coordinate X for the top left corner of the displayed image on the canvas*/
     int32_t _iPosY;         /**< Coordinate Y for the top left corner of the displayed image on the canvas*/
-    uint32_t* _apiImgBuf;   /**< Image buffer in Y1CbY2Cr values */
+    uint32_t* _apuiImgBuf;  /**< Image buffer in Y1CbY2Cr values */
 
 
     /**
      * @brief Convert two RGB pixels to one Y1CbY2Cr
      * 
-     * @param yR1 the red component of the first pixel
-     * @param yG1 the green component of the first pixel
-     * @param yB1 the blue component of the first pixel
-     * @param yR2 the red component of the second pixel
-     * @param yG2 the green component of the second pixel
-     * @param yB2 the blue component of the second pixel
+     * @param uyR1 the red component of the first pixel
+     * @param uyG1 the green component of the first pixel
+     * @param uyB1 the blue component of the first pixel
+     * @param uyR2 the red component of the second pixel
+     * @param uyG2 the green component of the second pixel
+     * @param uyB2 the blue component of the second pixel
      * @return uint32_t the converted Y1CbY2Cr pixel value
      */
-    static uint32_t rgb2yuv(uint8_t yR1, uint8_t yG1, uint8_t yB1, uint8_t yR2, uint8_t yG2, uint8_t yB2) noexcept;
+    static uint32_t rgb2yuv(uint8_t uyR1, uint8_t uyG1, uint8_t uyB1, 
+        uint8_t uyR2, uint8_t uyG2, uint8_t uyB2) noexcept;
 
 };
 
@@ -96,7 +96,7 @@ inline int32_t JPEG::getWidth() const noexcept { return _iWidth; }
 inline int32_t JPEG::getHeight() const noexcept { return _iHeight; }
 inline int32_t JPEG::getPosX() const noexcept { return _iPosX; }
 inline int32_t JPEG::getPosY() const noexcept { return _iPosY; }
-inline uint32_t* JPEG::getImgBuf() const noexcept { return _apiImgBuf; }
+inline uint32_t* JPEG::getImgBuf() const noexcept { return _apuiImgBuf; }
 
 
 #endif

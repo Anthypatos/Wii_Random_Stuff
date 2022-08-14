@@ -1,6 +1,5 @@
 #include <iostream>
 #include <iomanip>
-#include <string>
 #include <cstdlib>
 
 #include <ogc/color.h>
@@ -110,9 +109,9 @@ void state_in_game(SDL_Surface* pSdlSurfaceScreen, SDL_Joystick** apJoysticks)
 	SDL_JoystickUpdate();	// Update joysticks' status
 
 	SDL_Event sdlEvent;
-	uint8_t yAxisWhich = 0, yAxisIndex = 0;
+	uint8_t uyAxisWhich = 0, uyAxisIndex = 0;
 	int16_t rAxisValue = 0;
-	uint16_t rMouseX = 0, rMouseY = 0;
+	uint16_t urMouseX = 0, urMouseY = 0;
 
 	while (SDL_PollEvent(&sdlEvent))
 	{
@@ -144,16 +143,16 @@ void state_in_game(SDL_Surface* pSdlSurfaceScreen, SDL_Joystick** apJoysticks)
 			case SDL_JOYAXISMOTION:  
 				if (sdlEvent.jaxis.value < -3200 || sdlEvent.jaxis.value > 3200) 
 				{
-					yAxisWhich = sdlEvent.jaxis.which;
-					yAxisIndex = sdlEvent.jaxis.axis;
+					uyAxisWhich = sdlEvent.jaxis.which;
+					uyAxisIndex = sdlEvent.jaxis.axis;
 					rAxisValue = sdlEvent.jaxis.value;
 
-					if (yAxisIndex == 0) 
+					if (uyAxisIndex == 0) 
 					{
 						/* Left and right movement (according to sdlEvent.jaxis.value) of the
 							nunchuck stick or left analogic stick of the classic pad*/
 					}
-					else if (yAxisIndex == 1) 
+					else if (uyAxisIndex == 1) 
 					{
 						/* Up and Down movement (according to sdlEvent.jaxis.value) of the 
 							nunchuck stick or left analogic stick of the classic pad */
@@ -163,8 +162,8 @@ void state_in_game(SDL_Surface* pSdlSurfaceScreen, SDL_Joystick** apJoysticks)
 
 			// Infra Red is mapped as a mouse
 			case SDL_MOUSEMOTION:
-				rMouseX = sdlEvent.motion.x; 
-				rMouseY = sdlEvent.motion.y;
+				urMouseX = sdlEvent.motion.x; 
+				urMouseY = sdlEvent.motion.y;
 				break;
 
 			case SDL_QUIT:
@@ -174,21 +173,21 @@ void state_in_game(SDL_Surface* pSdlSurfaceScreen, SDL_Joystick** apJoysticks)
 		}
 	}	// End of event pool
 	
-	std::cout << "IR X " << rMouseX << " IR Y " << rMouseY << std::endl <<
-		"JOYAXISMOTION OF PAD " << yAxisWhich << std::endl << 
-		"AXIS " << yAxisIndex << std::endl << 
+	std::cout << "IR X " << urMouseX << " IR Y " << urMouseY << std::endl <<
+		"JOYAXISMOTION OF PAD " << uyAxisWhich << std::endl << 
+		"AXIS " << uyAxisIndex << std::endl << 
 		"VALUE " << rAxisValue << std::endl;
 	
 	// The hat reports the directional PAD's status 
 	for (uint8_t i = 0; i < SDL_NumJoysticks(); i++)
 	{
-		uint8_t yHats = SDL_JoystickNumHats(apJoysticks[i]);
-		for (uint8_t j = 0; j < yHats; j++)
+		uint8_t uyHats = SDL_JoystickNumHats(apJoysticks[i]);
+		for (uint8_t j = 0; j < uyHats; j++)
 		{
 			std::cout << "HAT " << j << " ";
 
-			uint8_t yJoystate = SDL_JoystickGetHat(apJoysticks[i], j);
-			switch (yJoystate)
+			uint8_t uyJoystate = SDL_JoystickGetHat(apJoysticks[i], j);
+			switch (uyJoystate)
 			{
 				case SDL_HAT_CENTERED: 		std::cout << "CENTERED "; 	break;
 				case SDL_HAT_UP: 			std::cout << "UP "; 		break;

@@ -27,15 +27,14 @@ INCLUDES	:=	include include/players
 
 CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE) `sdl-config --cflags` \
 			`$(PREFIX)pkg-config --cflags libturbojpeg jansson`
-CXXFLAGS	=	$(CFLAGS) -std=c++20
+CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	`freetype-config --libs` `sdl-config --libs` \
-			`$(PREFIX)pkg-config libturbojpeg jansson --libs` \
+LIBS	:=	`sdl-config --libs` `$(PREFIX)pkg-config libturbojpeg jansson --libs` \
 			-lwiiuse -lbte -lmodplay -laesnd -lfat -logc -lm
 # For MP3s: -lmad -lasnd
 

@@ -60,6 +60,7 @@
         "iomanip": "cpp",
         "sstream": "cpp",
         "fstream": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "cinttypes": "cpp"
     }
 }

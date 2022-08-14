@@ -9,14 +9,13 @@
 */
 
 #include <cstdio>
-#include <string>
 #include <ios>
 #include <jansson.h>
 #include "../include/SETTINGS.hpp"
 
 
 /** Default path for storing the application's settings */
-const std::string Settings::SCsDefaultPath = "/apps/test/settings.json";
+const char* Settings::SCsDefaultPath = "/apps/test/settings.json";
 
 /**
  * @brief Creates an object with the default settings
@@ -29,21 +28,21 @@ Settings::Settings() noexcept : _bBackgroundMusic{true}, _bRumble{true} {}
  * 
  * @param CsFilePath the path to the JSON file holding the settings
  */
-Settings::Settings(const std::string& CsFilePath) : _bBackgroundMusic{true}, _bRumble{true}
+Settings::Settings(const char* CsFilePath) : _bBackgroundMusic{true}, _bRumble{true}
 {
     json_t* jsonRoot = nullptr;			// Root object of the JSON file
     json_error_t jsonerror;				// Error handler
     json_t* jsonSettings = nullptr;		// "Settings" JSON object
     json_t* jsonField = nullptr;		// Every JSON field inside the "Settings" object
 
-	jsonRoot = json_load_file(CsFilePath.c_str(), 0, &jsonerror);
+	jsonRoot = json_load_file(CsFilePath, 0, &jsonerror);
 	if(!jsonRoot) throw std::ios_base::failure("Error opening file");
 
 	/* Retrieve the root and the "Settings" object first */
 	if(!json_is_object(jsonRoot))
 	{
 		json_decref(jsonRoot);
-        remove(CsFilePath.c_str());
+        remove(CsFilePath);
 		throw std::ios_base::failure("Error: Root is not an object");
 	}
 
@@ -51,7 +50,7 @@ Settings::Settings(const std::string& CsFilePath) : _bBackgroundMusic{true}, _bR
 	if(!json_is_object(jsonSettings))
 	{
 		json_decref(jsonRoot);
-        remove(CsFilePath.c_str());
+        remove(CsFilePath);
 		throw std::ios_base::failure("Error: settings is not an object");
 	}
 	
@@ -72,7 +71,7 @@ Settings::Settings(const std::string& CsFilePath) : _bBackgroundMusic{true}, _bR
  * 
  * @param CsPath the path where the settings are to be stored
  */
-void Settings::save(const std::string& CsPath) const
+void Settings::save(const char* CsPath) const
 {
     json_t* jsonRoot = json_object();		// Root object of the JSON file
     json_t* jsonSettings = json_object();	// "Settings" JSON object
@@ -85,7 +84,7 @@ void Settings::save(const std::string& CsPath) const
     json_object_set_new(jsonRoot, "settings", jsonSettings);
 
 	// Store the JSON settings on disk
-    if (json_dump_file(jsonRoot, CsPath.c_str(), JSON_INDENT(4) | JSON_SORT_KEYS) == -1)
+    if (json_dump_file(jsonRoot, CsPath, JSON_INDENT(4) | JSON_SORT_KEYS) == -1)
 		throw std::ios_base::failure("I/O Error");
 
 	// Free the objects from memory
