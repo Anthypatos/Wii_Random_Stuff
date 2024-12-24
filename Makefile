@@ -15,11 +15,11 @@ include $(DEVKITPPC)/wii_rules
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 #---------------------------------------------------------------------------------
-TARGET		:=	$(notdir $(CURDIR))
+TARGET		:=	boot
 BUILD		:=	build
-SOURCES		:=	source source/CApp source/players
+SOURCES		:=	source
 DATA		:=	data/images data/sounds
-INCLUDES	:=	include include/players
+INCLUDES	:=	include
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -110,11 +110,11 @@ clean:
 
 #---------------------------------------------------------------------------------
 run:
-	wiiload $(TARGET).dol
+	wiiload $(TARGET).dol "sd:/apps/$(notdir $(CURDIR))/$(TARGET).dol"
 
 #---------------------------------------------------------------------------------
-dolphin:
-	dolphin -d -b -e $(TARGET).dol
+test:
+	$(DOLPHIN_HOME)/dolphin --debugger --logger --audio_emulation=LLE --exec=$(TARGET).dol
 
 
 #---------------------------------------------------------------------------------

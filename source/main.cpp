@@ -3,8 +3,10 @@
 #include <ios>
 #include <cstdlib>
 #include <cmath>
-#include <dirent.h>
+#include <sys/dir.h>
+#include <cstdio>
 #include <unistd.h>
+
 #include <gccore.h>
 #include <wiiuse/wpad.h>
 #include <fat.h>
@@ -12,6 +14,7 @@
 //#include <mp3player.h>
 #include <aesndlib.h>
 #include <gcmodplay.h>
+
 #include "../include/util.hpp"
 #include "../include/SETTINGS.hpp"
 #include "../include/JPEG.hpp"
@@ -24,37 +27,37 @@
 #include "../build/yes_jpg.h"
 
 
-void initialise();
-void initialise_fat();
-void load_settings(const char* sFilePath = Settings::SCsDefaultPath);
-void prepare_exit();
-void die(const char* pcMsg);
+void Initialise();
+void FAT_Initialise();
+void Settings_Initialise(const char* sFilePath = Settings::SCsDefaultPath);
+void PrepareExit();
+void Die(const char* pcMsg);
 
 
-static void* SapXfb[2];					// Pointer to the XFB region
-static GXRModeObj* SpGXRmode = nullptr;		// Rendermode object holding the rendering parameters
-static MODPlay SMODPlay;					// Playmode object for playing sounds
+static void* SapXfb[2]{};					// Pointer to the XFB region
+static GXRModeObj* SpGXRmode{nullptr};		// Rendermode object holding the rendering parameters
+static MODPlay SMODPlay{};					// Playmode object for playing sounds
 static Settings Ssettings{};				// Global configuration object
 
 
 //-----------------------------------  ISR -----------------------------------------
 void ISR_PowerButton() 
 {
-	prepare_exit();
+	PrepareExit();
 	SYS_ResetSystem(SYS_POWEROFF, 0, 0);
 }
 
 
 void ISR_WiimotePowerButton(int32_t iChan)
 {
-	prepare_exit();
+	PrepareExit();
 	SYS_ResetSystem(SYS_POWEROFF, 0, 0);
 }
 
 
 void ISR_ResetButton(uint32_t uiIRQ, void* pContext)
 {
-	prepare_exit();
+	PrepareExit();
 	SYS_ResetSystem(SYS_HOTRESET, 0, 0);
 }
 
@@ -62,17 +65,17 @@ void ISR_ResetButton(uint32_t uiIRQ, void* pContext)
 //----------------------------------- MAIN ----------------------------------------
 int main(int argc, char** argv)
 {
-	initialise();
-	initialise_fat();
+	Initialise();
+	FAT_Initialise();
 
-	load_settings(Settings::SCsDefaultPath);
+	Settings_Initialise(Settings::SCsDefaultPath);
 
-	uint8_t uyXFB = 0;
-	JPEG imageNo(no_jpg, no_jpg_size);
-	JPEG imageYes(yes_jpg, yes_jpg_size);
+	uint8_t uyXFB{};
+	JPEG imageNo{no_jpg, no_jpg_size};
+	JPEG imageYes{yes_jpg, yes_jpg_size};
 
-	WPADData* pWPADData1 = nullptr;
-	uint32_t uiExpansionType = WPAD_EXP_NONE;
+	WPADData* pWPADData1{nullptr};
+	uint32_t uiExpansionType{WPAD_EXP_NONE};
 
 	MODPlay_SetMOD(&SMODPlay, technique_mod);
 	MODPlay_SetVolume(&SMODPlay, 63, 63);
@@ -88,30 +91,30 @@ int main(int argc, char** argv)
 		// This positions the cursor on row 2, column 0
 		// we can use variables for this with format codes too
 		// e.g. printf ("\x1b[%d;%dH", row, column );
-		std::cout << "\x1b[2;0H";
+		std::printf("\x1b[2;0H");
 
 		//VIDEO_ClearFrameBuffer(SpGXRmode, SapXfb[uyXFB], COLOR_BLACK);	// Clears the screen completely
 		if (!Ssettings.getBackgroundMusic())		// Music off - show a "no" button
 		{
-			imageNo.display(SapXfb[uyXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight, 
-				(SpGXRmode->fbWidth - imageNo.getWidth()) >> 1, 
-				(SpGXRmode->xfbHeight - imageNo.getHeight()) >> 1);
+			imageNo.Display(SapXfb[uyXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight, 
+				(SpGXRmode->fbWidth - imageNo.GetWidth()) >> 1, 
+				(SpGXRmode->xfbHeight - imageNo.GetHeight()) >> 1);
 
 			//if (MP3Player_IsPlaying()) MP3Player_Stop();
 			if (SMODPlay.playing && !SMODPlay.paused) MODPlay_Pause(&SMODPlay, true);
 		}
 		else	// Music on - show a "yes" button
 		{
-			imageYes.display(SapXfb[uyXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight,
-				(SpGXRmode->fbWidth - imageYes.getWidth()) >> 1, 
-				(SpGXRmode->xfbHeight - imageYes.getHeight()) >> 1);
+			imageYes.Display(SapXfb[uyXFB], SpGXRmode, SpGXRmode->fbWidth, SpGXRmode->xfbHeight,
+				(SpGXRmode->fbWidth - imageYes.GetWidth()) >> 1, 
+				(SpGXRmode->xfbHeight - imageYes.GetHeight()) >> 1);
 
 			//if (!MP3Player_IsPlaying()) MP3Player_PlayBuffer(sample_mp3, sample_mp3_size, nullptr);
 			if (!SMODPlay.playing) MODPlay_Start(&SMODPlay);
 			else if (SMODPlay.paused) MODPlay_Pause(&SMODPlay, false);
 		}
-		std::cout << "Background music = " << Ssettings.getBackgroundMusic() << " Rumble = " << 
-			Ssettings.getRumble() << std::endl << std::endl;
+		std::printf("Background music = %i Rumble = %i\n\n", Ssettings.getBackgroundMusic(), 
+			Ssettings.getRumble());
 
 
 		// Call WPAD_ScanPads each loop, this reads the latest controller states
@@ -135,22 +138,22 @@ int main(int argc, char** argv)
 				// We return to the launcher application via exit
 				if (pWPADData1->btns_d & WPAD_BUTTON_HOME) 
 				{
-					prepare_exit();
-					exit(EXIT_SUCCESS);
+					PrepareExit();
+					std::exit(EXIT_SUCCESS);
 				}
 				else if (pWPADData1->btns_d & WPAD_BUTTON_1) TOGGLE(HW_GPIOB_OUT, SLOT_LED);
 				else if (pWPADData1->btns_d & WPAD_BUTTON_2) TOGGLE(HW_GPIOB_OUT, DO_EJECT);
 				else if (pWPADData1->btns_d & WPAD_BUTTON_A && pWPADData1->ir.valid)
 				{
 					// Change the settings and save them on disk when clicking the button
-					if ((Ssettings.getBackgroundMusic() && pWPADData1->ir.x >= imageYes.getPosX() && 
-						pWPADData1->ir.x < imageYes.getPosX() + imageYes.getWidth() && 
-						pWPADData1->ir.y >= imageYes.getPosY() && 
-						pWPADData1->ir.y < imageYes.getPosY() + imageYes.getHeight()) ||
-						(!Ssettings.getBackgroundMusic() && pWPADData1->ir.x >= imageNo.getPosX() && 
-						pWPADData1->ir.x < imageNo.getPosX() + imageNo.getWidth() && 
-						pWPADData1->ir.y >= imageNo.getPosY() && 
-						pWPADData1->ir.y < imageNo.getPosY() + imageNo.getHeight()))
+					if ((Ssettings.getBackgroundMusic() && pWPADData1->ir.x >= imageYes.GetPosX() && 
+						pWPADData1->ir.x < imageYes.GetPosX() + imageYes.GetWidth() && 
+						pWPADData1->ir.y >= imageYes.GetPosY() && 
+						pWPADData1->ir.y < imageYes.GetPosY() + imageYes.GetHeight()) ||
+						(!Ssettings.getBackgroundMusic() && pWPADData1->ir.x >= imageNo.GetPosX() && 
+						pWPADData1->ir.x < imageNo.GetPosX() + imageNo.GetWidth() && 
+						pWPADData1->ir.y >= imageNo.GetPosY() && 
+						pWPADData1->ir.y < imageNo.GetPosY() + imageNo.GetHeight()))
 					{
 						Ssettings.setBackgroundMusic(!Ssettings.getBackgroundMusic());
 						Ssettings.setRumble(!Ssettings.getRumble());
@@ -159,7 +162,7 @@ int main(int argc, char** argv)
 				}
 			}
 
-			print_wiimote_data(SapXfb[uyXFB], SpGXRmode, pWPADData1);
+			PrintWiimoteData(SapXfb[uyXFB], SpGXRmode, pWPADData1);
 		}
 		
 		VIDEO_SetNextFramebuffer(SapXfb[uyXFB]);
@@ -176,7 +179,7 @@ int main(int argc, char** argv)
  * @brief Initialise essential subsystems
  * 
  */
-void initialise()
+void Initialise()
 {
 	// Initialise the video system
 	VIDEO_Init();
@@ -212,7 +215,7 @@ void initialise()
 
 	// Wait for Video setup to complete
 	VIDEO_WaitVSync();
-	if(SpGXRmode->viTVMode & VI_NON_INTERLACE) VIDEO_WaitVSync();
+	if (SpGXRmode->viTVMode & VI_NON_INTERLACE) VIDEO_WaitVSync();
 
 	WPAD_SetIdleTimeout(300);
 	WPAD_SetVRes(WPAD_CHAN_ALL, SpGXRmode->fbWidth, SpGXRmode->xfbHeight);
@@ -228,14 +231,14 @@ void initialise()
  * @brief Initialise FAT subsystem
  * 
  */
-void initialise_fat()
+void FAT_Initialise()
 {
-	if (!fatInitDefault()) die("fatInitDefault failure: terminating\n");
+	if (!fatInitDefault()) Die("fatInitDefault failure: terminating\n");
 
-	DIR* pDir = opendir("/");
-	if (!pDir) die("opendir() failure; terminating\n");
+	DIR* pDir{opendir("/")};
+	if (!pDir) Die("opendir() failure; terminating\n");
 
-	if (chdir("/")) die("Could not change to root directory, exiting.\n");
+	if (chdir("/")) Die("Could not change to root directory, exiting.\n");
 
 	closedir(pDir);
 }
@@ -246,19 +249,18 @@ void initialise_fat()
  * 
  * @param sFilePath the path to the configuration in the filesystem
  */
-void load_settings(const char* sFilePath)
+void Settings_Initialise(const char* sFilePath)
 {
 	try { Ssettings = Settings(sFilePath); }
 	catch (std::ios_base::failure& iof) { Ssettings.save(sFilePath); }
 }
 
 
-void prepare_exit()
+void PrepareExit()
 {
 	//if (MP3Player_IsPlaying()) MP3Player_Stop();
 	if (SMODPlay.playing) MODPlay_Stop(&SMODPlay);
 	WPAD_Shutdown();
-	fatUnmount(0);
 }
 
 
@@ -267,11 +269,11 @@ void prepare_exit()
  * 
  * @param pcMsg error message to print on the screen
  */
-void die(const char* pcMsg)
+void Die(const char* pcMsg)
 {
-	perror(pcMsg);
+	std::perror(pcMsg);
 	sleep(5);
 
-	prepare_exit();
-	exit(EXIT_FAILURE);
+	PrepareExit();
+	std::exit(EXIT_FAILURE);
 }
